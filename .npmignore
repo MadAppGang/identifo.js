@@ -1,7 +1,8 @@
 src
 webpack*config.js
 tsconfig.json
-tslint.json
+.eslintrc
+.eslintignore
 .vscode
 
 .git
