@@ -1,4 +1,3 @@
-/* eslint-disable max-nested-callbacks */
 import { getCompanyName } from '../index';
 
 describe('getCompanyName:', () => {
