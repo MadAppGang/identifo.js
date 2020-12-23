@@ -1,12 +1,14 @@
 {
     "compilerOptions": {
-      "module": "es6",
-      "target": "es5",
+      "module": "ES6",
+      "target": "ES5",
       "noImplicitAny": true,
       "moduleResolution": "node",
       "sourceMap": false,
       "outDir": "dist",
       "esModuleInterop": true,
       "declaration": true
-    }
+    },
+    "include": ["src", "**/*.tsx", "**/*.ts", "**/*.js"],
+    "exclude": ["node_modules", "dist"]
 }
