@@ -38,6 +38,7 @@
         "quotes": [2, "single", { "allowTemplateLiterals": true }],
         "wrap-iife": [2, "any"],
         "import/prefer-default-export":0,
-        "import/no-cycle": [2, { "maxDepth": 1 }]
+        "import/no-cycle": [2, { "maxDepth": 1 }],
+        "@typescript-eslint/restrict-template-expressions": ["error", { "allowNullish": true }]
     }
   }

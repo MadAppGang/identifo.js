@@ -6,6 +6,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "webpack",
+    "build:dev": "webpack --watch",
     "test": "jest --config jestconfig.json",
     "lint": "eslint . --ext .ts"
   },
