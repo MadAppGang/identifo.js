@@ -6,14 +6,14 @@ import { ACCESS_TOKEN_KEY, jwtPattern } from './constants';
 import { ClientToken, TokenManager } from './types/type';
 
 class TokenService {
-  private config:TokenManager;
+  private tokenManager:TokenManager;
 
   private parsedToken = {} as JWTVerifyResult;
 
   token: string;
 
   constructor(tokenManager:TokenManager) {
-    this.config = tokenManager;
+    this.tokenManager = tokenManager;
     this.token = this.parseFromUrl(window.location.hash) || this.tokenFromStorage;
   }
 
@@ -26,10 +26,9 @@ class TokenService {
     return '';
   }
 
-  async verify(audience:string, issuer:string, jwksUrl:string):Promise<string> {
+  async verify(audience:string, issuer:string):Promise<string> {
     try {
-      // TODO: Implement get method for local jwks
-      const key = await this.getJwks(jwksUrl);
+      const key = await this.getJWK();
       const publicKey = await parseJwk(key);
       const parsedToken = await jwtVerify(this.token, publicKey, { audience, issuer });
       this.parsedToken = parsedToken;
@@ -44,18 +43,28 @@ class TokenService {
     }
   }
 
+  private getJWK():JWK | Promise<JWK> {
+    if (this.tokenManager.jwk) {
+      return this.tokenManager.jwk;
+    }
+    if (this.tokenManager.jwksUrl) {
+      return this.getJWKS(this.tokenManager.jwksUrl);
+    }
+    return Promise.reject();
+  }
+
   get tokenFromStorage():string {
-    return window[this.config.storage || 'localStorage'].getItem(ACCESS_TOKEN_KEY) || '';
+    return window[this.tokenManager.storage || 'localStorage'].getItem(ACCESS_TOKEN_KEY) || '';
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private async getJwks(url:string):Promise<JWK> {
-    const keys = await api.getJwks(url);
+  private async getJWKS(url:string):Promise<JWK> {
+    const keys = await api.getJWKS(url);
     return keys[0];
   }
 
   private saveToken():void {
-    if (this.token) window[this.config.storage || 'localStorage'].setItem(ACCESS_TOKEN_KEY, this.token);
+    if (this.token) window[this.tokenManager.storage || 'localStorage'].setItem(ACCESS_TOKEN_KEY, this.token);
   }
 
   getToken():ClientToken {

@@ -1,4 +1,4 @@
-import { JWTPayload } from 'jose/webcrypto/types';
+import { JWK, JWTPayload } from 'jose/webcrypto/types';
 
 export type ClientToken = {
   token: string | undefined,
@@ -7,8 +7,8 @@ export type ClientToken = {
 
 export type TokenManager = {
   storage?: 'localStorage' | 'sessionStorage',
-  jwksUrl: string,
-  // jwk?: JWK
+  jwksUrl?: string,
+  jwk?: JWK
 };
 
 export type IdentifoConfig<S> = {

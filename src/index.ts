@@ -44,7 +44,7 @@ class IdentifoAuth {
 
   private handleAuthentication():void {
     if (window.location.href.includes(this.redirectUri) && window.location.hash) {
-      this.tokenService.verify(this.appId, this.issuer, this.tokenManager.jwksUrl)
+      this.tokenService.verify(this.appId, this.issuer)
         .then((token) => console.log(token))
         .catch(() => {});
     }
@@ -52,7 +52,7 @@ class IdentifoAuth {
 
   async getToken():Promise<ClientToken | null> {
     try {
-      await this.tokenService.verify(this.appId, this.issuer, this.tokenManager.jwksUrl);
+      await this.tokenService.verify(this.appId, this.issuer);
       return this.tokenService.getToken();
     } catch (err) {
       // TODO: throw Error
