@@ -6,21 +6,23 @@ import { ACCESS_TOKEN_KEY, jwtPattern } from './constants';
 import { ClientToken, TokenManager } from './types/type';
 
 class TokenService {
-  private config:TokenManager | undefined;
+  private config:TokenManager;
 
   private parsedToken = {} as JWTVerifyResult;
 
   token: string;
 
   constructor(tokenManager:TokenManager) {
-    this.token = this.parseFromUrl(window.location.hash) || this.tokenFromStorage;
     this.config = tokenManager;
+    this.token = this.parseFromUrl(window.location.hash) || this.tokenFromStorage;
   }
 
   // eslint-disable-next-line class-methods-use-this
   private parseFromUrl(hash:string):string {
     const token = hash.slice(1);
-    if (jwtPattern.test(token)) return token;
+    if (jwtPattern.test(token)) {
+      return token;
+    }
     return '';
   }
 
@@ -42,9 +44,8 @@ class TokenService {
     }
   }
 
-  // TODO: Fix warn with [storage]
   get tokenFromStorage():string {
-    return window[this.config?.storage ?? 'localStorage'].getItem(ACCESS_TOKEN_KEY) || '';
+    return window[this.config.storage || 'localStorage'].getItem(ACCESS_TOKEN_KEY) || '';
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -54,7 +55,7 @@ class TokenService {
   }
 
   private saveToken():void {
-    if (this.token) window[this.config?.storage ?? 'localStorage'].setItem(ACCESS_TOKEN_KEY, this.token);
+    if (this.token) window[this.config.storage || 'localStorage'].setItem(ACCESS_TOKEN_KEY, this.token);
   }
 
   getToken():ClientToken {
