@@ -1,8 +1,9 @@
-src
+/src
 webpack*config.js
 tsconfig.json
 .eslintrc
 .eslintignore
 .vscode
+.vscode/*
 
 .git
