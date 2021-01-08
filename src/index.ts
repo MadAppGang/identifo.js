@@ -19,6 +19,8 @@ class IdentifoAuth {
 
   private tokenService:TokenService;
 
+  isAuthenticated = false;
+
   constructor(config:IdentifoConfig<string[]>) {
     this.issuer = config.issuer;
     this.appId = config.appId;

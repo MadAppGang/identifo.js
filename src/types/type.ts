@@ -7,8 +7,7 @@ export type ClientToken = {
 
 export type TokenManager = {
   storage?: 'localStorage' | 'sessionStorage',
-  jwksUrl?: string,
-  jwk?: JWK
+  verificationKey: string | JWK
 };
 
 export type IdentifoConfig<S> = {

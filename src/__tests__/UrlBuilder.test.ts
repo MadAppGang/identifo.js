@@ -7,7 +7,7 @@ describe('UrlBuilder:', () => {
     scopes: [],
     redirectUri: 'http://localhost:3000',
     tokenManager: {
-      jwksUrl: 'http://localhost:8081/.well-known/jwks.json',
+      verificationKey: 'http://localhost:8081/.well-known/jwks.json',
     },
   };
   test('should be defined and has methods', () => {

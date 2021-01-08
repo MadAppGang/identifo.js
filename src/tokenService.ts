@@ -32,8 +32,6 @@ class TokenService {
       const publicKey = await parseJwk(key);
       const parsedToken = await jwtVerify(this.token, publicKey, { audience, issuer });
       this.parsedToken = parsedToken;
-      // TODO: refactor working with token
-      // (uri token and token, getter for this + verify need to be for token from store and uri)
       this.saveToken();
       return this.token;
     } catch (err) {
@@ -41,12 +39,18 @@ class TokenService {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  private isJWK(jwk: JWK): jwk is JWK {
+    return jwk.alg !== undefined;
+  }
+
   private getJWK():JWK | Promise<JWK> {
-    if (this.tokenManager.jwk) {
-      return this.tokenManager.jwk;
+    // TODO: change 'string' to URL type
+    if (typeof this.tokenManager.verificationKey === 'string') {
+      return this.getJWKS(this.tokenManager.verificationKey);
     }
-    if (this.tokenManager.jwksUrl) {
-      return this.getJWKS(this.tokenManager.jwksUrl);
+    if (this.isJWK(this.tokenManager.verificationKey)) {
+      return this.tokenManager.verificationKey;
     }
     return Promise.reject();
   }
@@ -57,8 +61,12 @@ class TokenService {
 
   // eslint-disable-next-line class-methods-use-this
   private async getJWKS(url:string):Promise<JWK> {
-    const keys = await api.getJWKS(url);
-    return keys[0];
+    try {
+      const keys = await api.getJWKS(url);
+      return keys[0];
+    } catch (err) {
+      throw new Error('Invalid verification key');
+    }
   }
 
   private saveToken():void {
