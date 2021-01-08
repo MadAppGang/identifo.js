@@ -45,11 +45,11 @@ class IdentifoAuth {
   }
 
   private handleAuthentication():void {
-    if (window.location.href.includes(this.redirectUri) && window.location.hash) {
-      this.tokenService.verify(this.appId, this.issuer)
-        .then((token) => console.log(token))
-        .catch(() => {});
-    }
+    // TODO: Remove comment after PR check
+    // if (window.location.href.includes(this.redirectUri) && window.location.hash) {
+    this.tokenService.verify(this.appId, this.issuer)
+      .then((token) => console.log(token))
+      .catch(() => {});
   }
 
   async getToken():Promise<ClientToken> {
