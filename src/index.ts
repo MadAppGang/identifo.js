@@ -50,13 +50,12 @@ class IdentifoAuth {
     }
   }
 
-  async getToken():Promise<ClientToken | null> {
+  async getToken():Promise<ClientToken> {
     try {
       await this.tokenService.verify(this.appId, this.issuer);
       return this.tokenService.getToken();
     } catch (err) {
-      // TODO: throw Error
-      return null;
+      throw new Error(err);
     }
   }
 }

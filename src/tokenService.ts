@@ -37,8 +37,6 @@ class TokenService {
       this.saveToken();
       return this.token;
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn('Invalid Token');
       throw new Error('Invalid Token');
     }
   }
