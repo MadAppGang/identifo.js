@@ -1,6 +1,8 @@
 import parseJwk from 'jose/jwk/parse';
 import jwtVerify from 'jose/jwt/verify';
-import { JWK, JWTVerifyResult } from 'jose/webcrypto/types';
+import {
+  JWK, JWTPayload, JWTVerifyResult, KeyLike,
+} from 'jose/webcrypto/types';
 import { api } from './api';
 import { ACCESS_TOKEN_KEY, jwtPattern } from './constants';
 import { ClientToken, TokenManager } from './types/type';
@@ -10,15 +12,16 @@ class TokenService {
 
   private parsedToken = {} as JWTVerifyResult;
 
-  token: string;
-
   constructor(tokenManager:TokenManager) {
     this.tokenManager = tokenManager;
-    this.token = this.parseFromUrl(window.location.hash) || this.tokenFromStorage;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private parseFromUrl(hash:string):string {
+  get tokenFromStorage():string {
+    return window[this.tokenManager.storage || 'localStorage'].getItem(ACCESS_TOKEN_KEY) ?? '';
+  }
+
+  private getTokenFromUrl():string {
+    const { hash } = window.location;
     const token = hash.slice(1);
     if (jwtPattern.test(token)) {
       return token;
@@ -26,40 +29,57 @@ class TokenService {
     return '';
   }
 
-  async verify(audience:string, issuer:string):Promise<string> {
+  parseJWT(token:string):JWTPayload {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('')
+      .map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`)
+      .join(''));
+    return JSON.parse(jsonPayload) as JWTPayload;
+  }
+
+  async handleVerify(audience:string, issuer:string):Promise<string> {
     try {
+      const token = this.getTokenFromUrl() || this.tokenFromStorage;
       const key = await this.getJWK();
-      const publicKey = await parseJwk(key);
-      const parsedToken = await jwtVerify(this.token, publicKey, { audience, issuer });
+      await this.verify(token, key, audience, issuer);
+      this.saveToken(token);
+      return token;
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
+
+  async verify(token:string, key:KeyLike, audience:string, issuer:string):Promise<string> {
+    try {
+      const parsedToken = await jwtVerify(token, key, { audience, issuer });
       this.parsedToken = parsedToken;
-      this.saveToken();
-      return this.token;
+      return token;
     } catch (err) {
       throw new Error('Invalid Token');
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
+  async getJWK():Promise<KeyLike> {
+    let key = {};
+    // TODO: change 'string' to URL type
+    try {
+      if (typeof this.tokenManager.verificationKey === 'string') {
+        key = await this.getJWKS(this.tokenManager.verificationKey);
+      }
+      if (this.isJWK(this.tokenManager.verificationKey as JWK)) {
+        key = this.tokenManager.verificationKey;
+      }
+      return await parseJwk(key);
+    } catch (err) {
+      throw new Error('Invalid verification key');
+    }
+  }
+
   private isJWK(jwk: JWK): jwk is JWK {
     return jwk.alg !== undefined;
   }
 
-  private getJWK():JWK | Promise<JWK> {
-    // TODO: change 'string' to URL type
-    if (typeof this.tokenManager.verificationKey === 'string') {
-      return this.getJWKS(this.tokenManager.verificationKey);
-    }
-    if (this.isJWK(this.tokenManager.verificationKey)) {
-      return this.tokenManager.verificationKey;
-    }
-    return Promise.reject();
-  }
-
-  get tokenFromStorage():string {
-    return window[this.tokenManager.storage || 'localStorage'].getItem(ACCESS_TOKEN_KEY) || '';
-  }
-
-  // eslint-disable-next-line class-methods-use-this
   private async getJWKS(url:string):Promise<JWK> {
     try {
       const keys = await api.getJWKS(url);
@@ -69,12 +89,16 @@ class TokenService {
     }
   }
 
-  private saveToken():void {
-    if (this.token) window[this.tokenManager.storage || 'localStorage'].setItem(ACCESS_TOKEN_KEY, this.token);
+  saveToken(token:string):void {
+    window[this.tokenManager.storage || 'localStorage'].setItem(ACCESS_TOKEN_KEY, token);
   }
 
-  getToken():ClientToken {
-    return { token: this.token, payload: this.parsedToken.payload };
+  getToken():ClientToken | null {
+    if (this.tokenFromStorage) {
+      const payload = this.parseJWT(this.tokenFromStorage);
+      return { token: this.tokenFromStorage, payload };
+    }
+    return null;
   }
 }
 

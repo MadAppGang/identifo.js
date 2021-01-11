@@ -39,6 +39,7 @@
         "wrap-iife": [2, "any"],
         "import/prefer-default-export":0,
         "import/no-cycle": [2, { "maxDepth": 1 }],
+        "class-methods-use-this": 0,
         "@typescript-eslint/restrict-template-expressions": ["error", { "allowNullish": true }]
     }
   }

@@ -1,19 +1,12 @@
+import { JWTPayload } from 'jose/webcrypto/types';
 import TokenService from './tokenService';
 import {
-  ClientToken, IdentifoConfig, TokenManager, UrlBuilderInit,
+  ClientToken, IdentifoConfig, UrlBuilderInit,
 } from './types/type';
 import { UrlBuilder } from './UrlBuilder';
 
 class IdentifoAuth {
-  private issuer: string;
-
-  private appId: string;
-
-  private scopes: string[];
-
-  private redirectUri: string;
-
-  private tokenManager: TokenManager;
+  private config;
 
   private urlBuilder: UrlBuilderInit;
 
@@ -22,11 +15,7 @@ class IdentifoAuth {
   isAuthenticated = false;
 
   constructor(config:IdentifoConfig<string[]>) {
-    this.issuer = config.issuer;
-    this.appId = config.appId;
-    this.scopes = config.scopes;
-    this.redirectUri = config.redirectUri;
-    this.tokenManager = config.tokenManager;
+    this.config = config;
     this.tokenService = new TokenService(config.tokenManager);
     this.urlBuilder = UrlBuilder.init(config);
     this.handleAuthentication();
@@ -45,20 +34,39 @@ class IdentifoAuth {
   }
 
   private handleAuthentication():void {
-    // TODO: Remove comment after PR check
-    // if (window.location.href.includes(this.redirectUri) && window.location.hash) {
-    this.tokenService.verify(this.appId, this.issuer)
-      .then((token) => console.log(token))
-      .catch(() => {});
+    if (window.location.href.includes(this.config.redirectUri) && window.location.hash) {
+      this.tokenService.handleVerify(this.config.appId, this.config.issuer)
+        .then(() => this.isAuthenticated = true)
+        .catch((err) => {
+          if (err instanceof Error) {
+            console.warn(err.message);
+          }
+          this.isAuthenticated = false;
+        });
+    }
   }
 
-  async getToken():Promise<ClientToken> {
-    try {
-      await this.tokenService.verify(this.appId, this.issuer);
-      return this.tokenService.getToken();
-    } catch (err) {
-      throw new Error(err);
+  isJWTExpired(token:JWTPayload):boolean {
+    const now = new Date().getTime() / 1000;
+    if (token.exp && now > token.exp) {
+      return true;
     }
+    return false;
+  }
+
+  getToken():ClientToken | null {
+    return this.tokenService.getToken();
+  }
+
+  getIsAuth():boolean {
+    const tokenData = this.tokenService.getToken();
+    if (!tokenData?.token) {
+      this.isAuthenticated = false;
+      return this.isAuthenticated;
+    }
+    const parsedToken = this.tokenService.parseJWT(tokenData?.token);
+    this.isAuthenticated = !this.isJWTExpired(parsedToken);
+    return this.isAuthenticated;
   }
 }
 export default IdentifoAuth;

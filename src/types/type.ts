@@ -1,8 +1,9 @@
-import { JWK, JWTPayload } from 'jose/webcrypto/types';
+import { JWK, JWSHeaderParameters, JWTPayload } from 'jose/webcrypto/types';
 
 export type ClientToken = {
-  token: string | undefined,
+  token: string,
   payload: JWTPayload
+  header?: JWSHeaderParameters
 };
 
 export type TokenManager = {
