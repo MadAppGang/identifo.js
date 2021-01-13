@@ -7,7 +7,7 @@
   "scripts": {
     "build": "webpack",
     "build:dev": "webpack --watch",
-    "test": "jest --config jestconfig.json",
+    "test": "jest --config jestconfig.json --env=./custom-test-env.js",
     "lint": "eslint . --ext .ts"
   },
   "repository": {
