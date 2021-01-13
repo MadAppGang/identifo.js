@@ -1,8 +1,7 @@
-import { JWTPayload } from 'jose/webcrypto/types';
 import TokenService from './tokenService';
 import {
   ClientToken, IdentifoConfig, UrlBuilderInit,
-} from './types/type';
+} from './types/types';
 import { UrlBuilder } from './UrlBuilder';
 
 class IdentifoAuth {
@@ -12,7 +11,7 @@ class IdentifoAuth {
 
   private tokenService:TokenService;
 
-  isAuthenticated = false;
+  private isAuthenticated = false;
 
   constructor(config:IdentifoConfig<string[]>) {
     this.config = config;
@@ -35,38 +34,37 @@ class IdentifoAuth {
 
   private handleAuthentication():void {
     if (window.location.href.includes(this.config.redirectUri) && window.location.hash) {
-      this.tokenService.handleVerify(this.config.appId, this.config.issuer)
+      this.tokenService.handleVerification(this.config.appId, this.config.issuer)
         .then(() => this.isAuthenticated = true)
         .catch((err) => {
+          // TODO: refactor warnings when debug mode will be implemented
           if (err instanceof Error) {
             console.warn(err.message);
           }
           this.isAuthenticated = false;
         });
+      // window.location.hash = '';
     }
   }
 
-  isJWTExpired(token:JWTPayload):boolean {
-    const now = new Date().getTime() / 1000;
-    if (token.exp && now > token.exp) {
-      return true;
+  private handleAuthStatus():boolean {
+    const tokenData = this.tokenService.getToken();
+    if (!tokenData?.token) {
+      this.isAuthenticated = false;
+      return this.isAuthenticated;
     }
-    return false;
+    const jwtPayload = this.tokenService.parseJWT(tokenData?.token);
+    this.isAuthenticated = !this.tokenService.isJWTExpired(jwtPayload);
+    return this.isAuthenticated;
   }
 
   getToken():ClientToken | null {
     return this.tokenService.getToken();
   }
 
-  getIsAuth():boolean {
-    const tokenData = this.tokenService.getToken();
-    if (!tokenData?.token) {
-      this.isAuthenticated = false;
-      return this.isAuthenticated;
-    }
-    const parsedToken = this.tokenService.parseJWT(tokenData?.token);
-    this.isAuthenticated = !this.isJWTExpired(parsedToken);
-    return this.isAuthenticated;
+  getAuthenticated():boolean {
+    const isAuthenticated = this.handleAuthStatus();
+    return isAuthenticated;
   }
 }
 export default IdentifoAuth;

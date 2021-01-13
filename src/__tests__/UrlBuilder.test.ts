@@ -6,9 +6,6 @@ describe('UrlBuilder:', () => {
     appId: '59fd884d8f6b180001f5b4e2',
     scopes: [],
     redirectUri: 'http://localhost:3000',
-    tokenManager: {
-      verificationKey: 'http://localhost:8081/.well-known/jwks.json',
-    },
   };
   test('should be defined and has methods', () => {
     const builderMethods = UrlBuilder.init(config);

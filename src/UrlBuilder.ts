@@ -1,4 +1,4 @@
-import { UrlBuilderType } from './types/type';
+import { UrlBuilderType } from './types/types';
 
 export const UrlBuilder:UrlBuilderType = {
   config: null,
@@ -11,6 +11,7 @@ export const UrlBuilder:UrlBuilderType = {
       createLogoutUrl: this.createLogoutUrl.bind(this),
     };
   },
+
   createSignUpUrl() {
     return `${this.config?.issuer}/web/register`
       + `?appId=${this.config?.appId}&scopes=${this.config?.scopes}&callbackUrl=${this.config?.redirectUri}`;
@@ -18,7 +19,7 @@ export const UrlBuilder:UrlBuilderType = {
 
   createSignInUrl() {
     return `${this.config?.issuer}/web/login`
-      + `?appId=${this.config?.appId}&scopes=${this.config?.scopes}&callbackUrl=${this.config?.redirectUri}/callback`;
+      + `?appId=${this.config?.appId}&scopes=${this.config?.scopes}&callbackUrl=${this.config?.redirectUri}`;
   },
 
   createLogoutUrl() {
