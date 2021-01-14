@@ -6,7 +6,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "webpack",
-    "build:dev": "webpack --watch",
+    "build:dev": "webpack --watch --mode=development",
     "test": "jest --config jest.config.js --env=./custom-test-env.js",
     "lint": "eslint . --ext .ts"
   },

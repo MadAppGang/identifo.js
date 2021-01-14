@@ -9,5 +9,5 @@ module.exports = {
     '^jose/(.*)$': '<rootDir>/node_modules/jose/dist/node/cjs/$1',
   },
   testPathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/node_modules/', '<rootDir>/.history/'],
-
+  setupFilesAfterEnv: ['<rootDir>/setupTests.js'],
 };

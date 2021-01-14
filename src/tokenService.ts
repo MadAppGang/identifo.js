@@ -1,44 +1,34 @@
-import { JWTPayload, ClientToken, TokenManager } from './types/types';
-import { ACCESS_TOKEN_KEY, jwtRegex } from './constants';
+import { LocalStorageManager } from './store-manager';
+import { ClientToken, JWTPayload, TokenManager } from './types/types';
 
 class TokenService {
   private tokenManager:TokenManager;
 
-  private defaultTokenManager:TokenManager = {
-    storage: 'localStorage',
-  };
-
-  constructor(tokenManager:TokenManager | undefined) {
-    this.tokenManager = tokenManager || this.defaultTokenManager;
+  constructor(tokenManager?:TokenManager) {
+    this.tokenManager = tokenManager || new LocalStorageManager();
+    // TODO: implement cookie as default
+    // this.tokenManager = tokenManager || new CoockieStorage();
   }
 
-  get tokenFromStorage():string {
-    return window[this.tokenManager.storage].getItem(ACCESS_TOKEN_KEY) ?? '';
-  }
-
-  handleVerification(audience:string, issuer:string):Promise<void> {
-    return new Promise((res, rej) => {
-      const token = this.getTokenFromUrl();
-      const jwtPayload = this.parseJWT(token);
-      const { aud, iss } = jwtPayload;
-      const isJwtExpired = this.isJWTExpired(jwtPayload);
-      if (aud === audience && iss === issuer && !isJwtExpired) {
-        this.saveToken(token);
-        res();
-      } else {
-        // TODO: need to delete token from store if isnt valid?
-        rej(new Error('Token is invalid'));
-      }
-    });
-  }
-
-  private getTokenFromUrl():string {
-    const { hash } = window.location;
-    const token = hash.slice(1);
-    if (jwtRegex.test(token)) {
-      return token;
+  async handleVerification(token:string, audience:string, issuer:string):Promise<boolean> {
+    if (!this.tokenManager.isAccessible) return true;
+    try {
+      await this.validateToken(token, audience, issuer);
+      await this.tokenManager.saveToken(token);
+      return true;
+    } catch (err) {
+      return Promise.reject(err);
     }
-    return '';
+  }
+
+  async validateToken(token:string, audience:string, issuer:string):Promise<boolean> {
+    if (!token) throw new Error('Empty or invalid token');
+    const jwtPayload = this.parseJWT(token);
+    const isJwtExpired = this.isJWTExpired(jwtPayload);
+    if (jwtPayload.aud === audience && jwtPayload.iss === issuer && !isJwtExpired) {
+      return Promise.resolve(true);
+    }
+    throw new Error('Empty or invalid token');
   }
 
   parseJWT(token:string):JWTPayload {
@@ -58,18 +48,17 @@ class TokenService {
     return false;
   }
 
-  saveToken(token:string):void {
-    window[this.tokenManager.storage].setItem(ACCESS_TOKEN_KEY, token);
+  async saveToken(token:string):Promise<boolean> {
+    return this.tokenManager.saveToken(token);
   }
 
-  getToken():ClientToken | null {
-    if (this.tokenFromStorage) {
-      const jwtPayload = this.parseJWT(this.tokenFromStorage);
-      const isJwtExpired = this.isJWTExpired(jwtPayload);
-      if (!isJwtExpired) {
-        return { token: this.tokenFromStorage, payload: jwtPayload };
-      }
-      return null;
+  async getToken():Promise<ClientToken | null> {
+    const token = await this.tokenManager.getToken();
+    if (!token) return null;
+    const jwtPayload = this.parseJWT(token);
+    const isJwtExpired = this.isJWTExpired(jwtPayload);
+    if (!isJwtExpired) {
+      return { token, payload: jwtPayload };
     }
     return null;
   }

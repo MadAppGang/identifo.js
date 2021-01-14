@@ -1,8 +1,11 @@
 import { JWSHeaderParameters } from 'jose/webcrypto/types';
 
-export type TokenManager = {
-  storage: 'localStorage' | 'sessionStorage',
-};
+export interface TokenManager {
+  isAccessible: boolean
+  saveToken:(token:string) => Promise<boolean>
+  getToken:() => Promise<string>
+
+}
 
 export type IdentifoConfig<S> = {
   issuer: string,
@@ -20,7 +23,8 @@ export type UrlBuilderInit = {
 };
 
 export type UrlBuilderType = UrlBuilderInit & {
-  config: IdentifoConfig<string> | null,
+  config: IdentifoConfig<string>,
+  urlParams: string,
   init: (config:IdentifoConfig<string[]>) => UrlBuilderInit,
 };
 

@@ -1,4 +1,4 @@
-import IdentifoAuth from '../index';
+import IdentifoAuth from '../IdentifoAuth';
 
 describe('IdentifoAuth: ', () => {
   const config = {
@@ -7,8 +7,15 @@ describe('IdentifoAuth: ', () => {
     scopes: [],
     redirectUri: 'http://localhost:3000',
   };
-  test('', () => {
-    const identifo = new IdentifoAuth(config);
+
+  const identifo = new IdentifoAuth(config);
+
+  test('should be defined', () => {
     expect(identifo).toBeDefined();
+  });
+
+  test('should return auth status', () => {
+    const authStatus = identifo.getAuthenticated();
+    expect(typeof authStatus === 'boolean').toBeTruthy();
   });
 });
