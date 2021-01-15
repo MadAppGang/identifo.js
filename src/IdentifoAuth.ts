@@ -33,7 +33,7 @@ class IdentifoAuth {
   }
 
   async handleAuthentication():Promise<boolean> {
-    if (!window.location.href.includes(this.config.redirectUri) || !window.location.hash) {
+    if (!window.location.href.includes(this.config.redirectUri) && !window.location.hash) {
       throw new Error();
     }
     try {

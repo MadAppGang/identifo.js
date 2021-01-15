@@ -18,4 +18,6 @@ describe('IdentifoAuth: ', () => {
     const authStatus = identifo.getAuthenticated();
     expect(typeof authStatus === 'boolean').toBeTruthy();
   });
+
+  test('should be rejected', () => expect(identifo.handleAuthentication()).rejects.toBeInstanceOf(Error));
 });
