@@ -17,6 +17,7 @@ class TokenService {
       await this.tokenManager.saveToken(token);
       return true;
     } catch (err) {
+      await this.tokenManager.deleteToken();
       return Promise.reject(err);
     }
   }
@@ -51,6 +52,7 @@ class TokenService {
   async isAuthenticated(audience:string, issuer:string):Promise<boolean> {
     if (!this.tokenManager.isAccessible) return true;
     const token = await this.tokenManager.getToken();
+    // TODO: may be change to handleAuth instead validateToken
     return this.validateToken(token, audience, issuer);
   }
 

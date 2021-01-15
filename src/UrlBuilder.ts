@@ -11,6 +11,7 @@ export const UrlBuilder:UrlBuilderType = {
       createSignUpUrl: this.createSignUpUrl.bind(this),
       createSignInUrl: this.createSignInUrl.bind(this),
       createLogoutUrl: this.createLogoutUrl.bind(this),
+      createRenewSessionURL: this.createRenewSessionURL.bind(this),
     };
   },
 
@@ -24,5 +25,9 @@ export const UrlBuilder:UrlBuilderType = {
 
   createLogoutUrl() {
     return `${this.config.issuer}/web/logout${this.urlParams}`;
+  },
+  createRenewSessionURL() {
+    return `${this.config.issuer}/web/token/renew?`
+    + `appId=${this.config.appId}&scopes=${this.config.scopes}&redirectUri=${this.config.redirectUri}`;
   },
 };

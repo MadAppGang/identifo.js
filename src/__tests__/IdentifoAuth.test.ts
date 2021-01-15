@@ -14,8 +14,8 @@ describe('IdentifoAuth: ', () => {
     expect(identifo).toBeDefined();
   });
 
-  test('should return auth status', () => {
-    const authStatus = identifo.getAuthenticated();
+  test('should return auth status', async () => {
+    const authStatus = await identifo.getAuthenticated();
     expect(typeof authStatus === 'boolean').toBeTruthy();
   });
 

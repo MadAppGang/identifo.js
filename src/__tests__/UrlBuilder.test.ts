@@ -13,15 +13,20 @@ describe('UrlBuilder: ', () => {
   test('should be defined and has methods', () => {
     expect(urlBuilder).toBeDefined();
     expect(Object.keys(urlBuilder))
-      .toEqual(['createSignUpUrl', 'createSignInUrl', 'createLogoutUrl']);
+      .toEqual(['createSignUpUrl', 'createSignInUrl', 'createLogoutUrl', 'createRenewSessionURL']);
   });
 
   test('should return correct url', () => {
     const signUpUrl = urlBuilder.createSignUpUrl();
     const signInUrl = urlBuilder.createSignInUrl();
     const logOut = urlBuilder.createLogoutUrl();
+    const renewSession = urlBuilder.createRenewSessionURL();
     expect(signUpUrl).toBe(`${config.issuer}/web/register${urlParams}`);
     expect(signInUrl).toBe(`${config.issuer}/web/login${urlParams}`);
     expect(logOut).toBe(`${config.issuer}/web/logout${urlParams}`);
+    expect(renewSession).toBe(
+      `${config.issuer}/web/token/renew?appId=${config.appId}`
+      + `&scopes=${JSON.stringify(config.scopes)}&redirectUri=${config.redirectUri}`,
+    );
   });
 });

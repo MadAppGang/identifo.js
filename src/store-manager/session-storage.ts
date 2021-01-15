@@ -21,6 +21,10 @@ class SessionStorage implements TokenManager {
   async getToken():Promise<string> {
     return window.sessionStorage.getItem(this.key) ?? '';
   }
+
+  async deleteToken():Promise<void> {
+    window.sessionStorage.removeItem(this.key);
+  }
 }
 
 export default SessionStorage;

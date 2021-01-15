@@ -4,7 +4,7 @@ export interface TokenManager {
   isAccessible: boolean
   saveToken:(token:string) => Promise<boolean>
   getToken:() => Promise<string>
-
+  deleteToken:() => Promise<void>
 }
 
 export type IdentifoConfig<S> = {
@@ -20,6 +20,7 @@ export type UrlBuilderInit = {
   createSignUpUrl: () => string,
   createSignInUrl: () => string,
   createLogoutUrl: () => string,
+  createRenewSessionURL: () => string,
 };
 
 export type UrlBuilderType = UrlBuilderInit & {

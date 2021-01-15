@@ -1,4 +1,5 @@
 import { jwtRegex } from './constants';
+import Iframe from './iframe';
 import TokenService from './tokenService';
 import { ClientToken, IdentifoConfig, UrlBuilderInit } from './types/types';
 import { UrlBuilder } from './UrlBuilder';
@@ -10,7 +11,7 @@ class IdentifoAuth {
 
   private tokenService:TokenService;
 
-  private isAuthenticated = false;
+  // private isAuthenticated = false;
 
   constructor(config:IdentifoConfig<string[]>) {
     this.config = config;
@@ -38,10 +39,9 @@ class IdentifoAuth {
     }
     try {
       const token = this.getTokenFromUrl();
-      this.isAuthenticated = await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
+      await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
       return true;
     } catch (err) {
-      this.isAuthenticated = false;
       // TODO: refactor warnings when debug mode will be implemented
       console.warn(err);
       throw err;
@@ -64,12 +64,34 @@ class IdentifoAuth {
     return token;
   }
 
-  getAuthenticated():Promise<boolean> {
+  async getAuthenticated():Promise<boolean> {
     // TODO: Implement auth request / correct flow
     // await api.getMe(tokenData?.token ?? '');
-    return this.tokenService.isAuthenticated(this.config.appId, this.config.issuer)
-      .then(() => true)
-      .catch(() => false);
+    try {
+      await this.tokenService.isAuthenticated(this.config.appId, this.config.issuer);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async renewSession():Promise<string> {
+    const iframe = Iframe.create();
+    const timeout = setTimeout(() => {
+      Iframe.remove(iframe);
+      throw new Error('Timeout expired');
+    }, 30000);
+
+    try {
+      const token = await Iframe.captureMessage(iframe, this.urlBuilder.createRenewSessionURL());
+      await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
+      return token;
+    } catch (err) {
+      throw new Error(err);
+    } finally {
+      clearTimeout(timeout);
+      Iframe.remove(iframe);
+    }
   }
 }
 export default IdentifoAuth;
