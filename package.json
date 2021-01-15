@@ -1,8 +1,8 @@
 {
-  "name": "@nikita-ks/identifo-react-js",
-  "version": "1.0.0",
-  "description": "Library for web-auth(React) through Identifo",
-  "main": "./dist/@nikita-ks/identifo-react-js.js",
+  "name": "@madappgang/identifo-js",
+  "version": "3.0.0",
+  "description": "Library for web-auth through Identifo",
+  "main": "./dist/lib/identifo-js.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "webpack",

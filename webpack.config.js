@@ -8,8 +8,8 @@ module.exports = {
   entry: './src/index.ts',
   output: {
     path: path.resolve(__dirname, "./dist"),
-    filename: "@nikita-ks/identifo-react-js.js",
-    library: "IdentifoReactJs",
+    filename: "lib/identifo-js.js",
+    library: "IdentifoJs",
     libraryTarget: "umd",
     globalObject: "this",
     umdNamedDefine: true,
