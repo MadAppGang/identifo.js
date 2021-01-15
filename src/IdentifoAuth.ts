@@ -64,11 +64,12 @@ class IdentifoAuth {
     return token;
   }
 
-  getAuthenticated():boolean {
+  getAuthenticated():Promise<boolean> {
     // TODO: Implement auth request / correct flow
-    // const tokenData = await this.getToken();
     // await api.getMe(tokenData?.token ?? '');
-    return this.isAuthenticated;
+    return this.tokenService.isAuthenticated(this.config.appId, this.config.issuer)
+      .then(() => true)
+      .catch(() => false);
   }
 }
 export default IdentifoAuth;

@@ -48,6 +48,12 @@ class TokenService {
     return false;
   }
 
+  async isAuthenticated(audience:string, issuer:string):Promise<boolean> {
+    if (!this.tokenManager.isAccessible) return true;
+    const token = await this.tokenManager.getToken();
+    return this.validateToken(token, audience, issuer);
+  }
+
   async saveToken(token:string):Promise<boolean> {
     return this.tokenManager.saveToken(token);
   }
