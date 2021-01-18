@@ -1,4 +1,4 @@
-import { UrlBuilder } from '../UrlBuilder';
+import { UrlBuilder } from '../src/UrlBuilder';
 
 describe('UrlBuilder: ', () => {
   const config = {

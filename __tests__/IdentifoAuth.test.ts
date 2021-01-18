@@ -1,4 +1,4 @@
-import IdentifoAuth from '../IdentifoAuth';
+import IdentifoAuth from '../src/IdentifoAuth';
 
 describe('IdentifoAuth: ', () => {
   const config = {

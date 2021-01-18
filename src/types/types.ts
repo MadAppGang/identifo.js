@@ -70,7 +70,7 @@ export interface JWTPayload {
   /**
    * Any other JWT Claim Set member.
    */
-  [propName: string]: any
+  [propName: string]: unknown
 }
 
 export type ClientToken = {

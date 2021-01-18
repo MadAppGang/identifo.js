@@ -15,7 +15,7 @@
       "airbnb-typescript/base"
     ],
     "parserOptions": {
-      "project": "./tsconfig.json",
+      "project": "./tsconfig.lib.json",
       "sourceType":  "module"
     },
     "rules": { 
