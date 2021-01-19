@@ -1,3 +1,4 @@
+import { INVALID_TOKEN_ERROR } from './constants';
 import { LocalStorageManager } from './store-manager';
 import { ClientToken, JWTPayload, TokenManager } from './types/types';
 
@@ -23,17 +24,18 @@ class TokenService {
   }
 
   async validateToken(token:string, audience:string, issuer:string):Promise<boolean> {
-    if (!token) throw new Error('Empty or invalid token');
+    if (!token) throw new Error(INVALID_TOKEN_ERROR);
     const jwtPayload = this.parseJWT(token);
     const isJwtExpired = this.isJWTExpired(jwtPayload);
     if (jwtPayload.aud === audience && jwtPayload.iss === issuer && !isJwtExpired) {
       return Promise.resolve(true);
     }
-    throw new Error('Empty or invalid token');
+    throw new Error(INVALID_TOKEN_ERROR);
   }
 
   parseJWT(token:string):JWTPayload {
     const base64Url = token.split('.')[1];
+    if (!base64Url) return { aud: '', iss: '', exp: 10 };
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(atob(base64).split('')
       .map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`)

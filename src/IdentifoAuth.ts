@@ -43,7 +43,7 @@ class IdentifoAuth {
       return true;
     } catch (err) {
       // TODO: refactor warnings when debug mode will be implemented
-      console.warn(err);
+      if (err instanceof Error) console.warn(err.message);
       throw err;
     } finally {
       window.location.hash = '';
@@ -87,7 +87,7 @@ class IdentifoAuth {
       await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
       return token;
     } catch (err) {
-      throw new Error(err);
+      return Promise.reject(err);
     } finally {
       clearTimeout(timeout);
       Iframe.remove(iframe);
