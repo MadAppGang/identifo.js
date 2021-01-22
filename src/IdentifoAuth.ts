@@ -40,10 +40,8 @@ class IdentifoAuth {
     try {
       await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
       return true;
-    // } catch (err) {
-      // TODO: Need here cathc block ?
-      // if (err instanceof Error) console.warn(err.message);
-      // throw err;
+    } catch (err) {
+      return false;
     } finally {
       window.location.hash = '';
     }

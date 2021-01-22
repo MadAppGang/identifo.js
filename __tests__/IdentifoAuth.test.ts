@@ -31,8 +31,8 @@ describe('IdentifoAuth: ', () => {
     expect(typeof authStatus === 'boolean').toBe(true);
   });
 
-  test('handleAuthentication should be rejected', () => {
-    expect(identifo.handleAuthentication()).rejects.toBeInstanceOf(Error);
+  test('handleAuthentication should return false when has no token', () => {
+    expect(identifo.handleAuthentication()).resolves.toBe(false);
   });
 
   test('handleAuthentication should return true if has correct url and token', async () => {
@@ -64,17 +64,18 @@ describe('IdentifoAuth: ', () => {
   });
 
   describe('Falsy scenario:', () => {
-    const payload1 = { ...payload, exp: payload.exp - 7200 }; // EXP = current time - 1 hour
-    const generatedToken1 = jwt.encode(payload1, 'secret');
-    const hash1 = `#${generatedToken1}`;
+    const falsyPayload = { ...payload, exp: payload.exp - 7200 }; // EXP = current time - 1 hour
+    const falsyGeneratedToken = jwt.encode(falsyPayload, 'secret');
+    const falsyHash = `#${falsyGeneratedToken}`;
     beforeAll(() => {
       Object.defineProperty(window, 'location', {
-        value: { href: config.redirectUri, hash: hash1 },
+        value: { href: config.redirectUri, hash: falsyHash },
       });
       window.localStorage.removeItem('identifo_access_token');
     });
-    test('handleAuthentication should be falsy', () => {
-      expect(identifo.handleAuthentication()).rejects.toBeInstanceOf(Error);
+    test('handleAuthentication should be falsy', async () => {
+      const status = await identifo.handleAuthentication();
+      expect(status).toBe(false);
     });
 
     test('getToken should return null if token is invalid', async () => {
