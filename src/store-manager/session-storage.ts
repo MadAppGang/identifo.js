@@ -22,7 +22,7 @@ class SessionStorage implements TokenManager {
     return window.sessionStorage.getItem(this.key) ?? '';
   }
 
-  async deleteToken():Promise<void> {
+  deleteToken():void {
     window.sessionStorage.removeItem(this.key);
   }
 }

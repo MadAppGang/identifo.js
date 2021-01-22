@@ -18,7 +18,7 @@ class TokenService {
       await this.tokenManager.saveToken(token);
       return true;
     } catch (err) {
-      await this.tokenManager.deleteToken();
+      this.removeToken();
       return Promise.reject(err);
     }
   }
@@ -60,6 +60,10 @@ class TokenService {
 
   async saveToken(token:string):Promise<boolean> {
     return this.tokenManager.saveToken(token);
+  }
+
+  removeToken():void {
+    this.tokenManager.deleteToken();
   }
 
   async getToken():Promise<ClientToken | null> {

@@ -4,7 +4,7 @@ export interface TokenManager {
   isAccessible: boolean
   saveToken:(token:string) => Promise<boolean>
   getToken:() => Promise<string>
-  deleteToken:() => Promise<void>
+  deleteToken:() => void
 }
 
 export type IdentifoConfig<S> = {

@@ -11,8 +11,6 @@ class IdentifoAuth {
 
   private tokenService:TokenService;
 
-  // private isAuthenticated = false;
-
   constructor(config:IdentifoConfig<string[]>) {
     this.config = config;
     this.tokenService = new TokenService(config.tokenManager);
@@ -30,21 +28,22 @@ class IdentifoAuth {
   }
 
   logOut():void {
+    this.tokenService.removeToken();
     window.location.href = this.urlBuilder.createLogoutUrl();
   }
 
   async handleAuthentication():Promise<boolean> {
-    if (!window.location.href.includes(this.config.redirectUri) && !window.location.hash) {
-      throw new Error();
+    const token = this.getTokenFromUrl();
+    if (!token) {
+      return false;
     }
     try {
-      const token = this.getTokenFromUrl();
       await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
       return true;
-    } catch (err) {
-      // TODO: refactor warnings when debug mode will be implemented
-      if (err instanceof Error) console.warn(err.message);
-      throw err;
+    // } catch (err) {
+      // TODO: Need here cathc block ?
+      // if (err instanceof Error) console.warn(err.message);
+      // throw err;
     } finally {
       window.location.hash = '';
     }

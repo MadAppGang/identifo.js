@@ -22,7 +22,7 @@ class LocalStorage implements TokenManager {
     return window.localStorage.getItem(this.key) ?? '';
   }
 
-  async deleteToken():Promise<void> {
+  deleteToken():void {
     window.localStorage.removeItem(this.key);
   }
 }
