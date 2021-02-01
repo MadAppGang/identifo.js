@@ -1,3 +1,5 @@
-import { Mad } from './types/type';
+import IdentifoAuth from './IdentifoAuth';
+import { LocalStorageManager, SessionStorageManager, CookieStorageManager } from './store-manager';
 
-export const getCompanyName = (name:Mad):string => name;
+export { LocalStorageManager, SessionStorageManager, CookieStorageManager };
+export default IdentifoAuth;
