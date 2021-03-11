@@ -11,7 +11,7 @@ class TokenService {
     // this.tokenManager = tokenManager || new CoockieStorage();
   }
 
-  async handleVerification(token:string, audience:string, issuer:string):Promise<boolean> {
+  async handleVerification(token:string, audience:string, issuer?:string):Promise<boolean> {
     if (!this.tokenManager.isAccessible) return true;
     try {
       await this.validateToken(token, audience, issuer);
@@ -23,11 +23,11 @@ class TokenService {
     }
   }
 
-  async validateToken(token:string, audience:string, issuer:string):Promise<boolean> {
+  async validateToken(token:string, audience:string, issuer?:string):Promise<boolean> {
     if (!token) throw new Error(INVALID_TOKEN_ERROR);
     const jwtPayload = this.parseJWT(token);
     const isJwtExpired = this.isJWTExpired(jwtPayload);
-    if (jwtPayload.aud === audience && jwtPayload.iss === issuer && !isJwtExpired) {
+    if (jwtPayload.aud === audience && (!issuer || jwtPayload.iss === issuer) && !isJwtExpired) {
       return Promise.resolve(true);
     }
     throw new Error(INVALID_TOKEN_ERROR);
@@ -51,9 +51,9 @@ class TokenService {
     return false;
   }
 
-  async isAuthenticated(audience:string, issuer:string):Promise<boolean> {
-    if (!this.tokenManager.isAccessible) return true;
-    const token = await this.tokenManager.getToken();
+  isAuthenticated(audience:string, issuer?:string):Promise<boolean> {
+    if (!this.tokenManager.isAccessible) return Promise.resolve(true);
+    const token = this.tokenManager.getToken();
     // TODO: may be change to handleAuth instead validateToken
     return this.validateToken(token, audience, issuer);
   }
@@ -66,8 +66,8 @@ class TokenService {
     this.tokenManager.deleteToken();
   }
 
-  async getToken():Promise<ClientToken | null> {
-    const token = await this.tokenManager.getToken();
+  getToken():ClientToken | null {
+    const token = this.tokenManager.getToken();
     if (!token) return null;
     const jwtPayload = this.parseJWT(token);
     const isJwtExpired = this.isJWTExpired(jwtPayload);

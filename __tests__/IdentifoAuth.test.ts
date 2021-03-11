@@ -6,10 +6,11 @@ const jwt = require('jwt-simple');
 
 describe('IdentifoAuth: ', () => {
   const config = {
-    issuer: 'http://localhost:8081',
+    authUrl: 'http://localhost:8081',
     appId: '59fd884d8f6b180001f5b4e2',
     scopes: [],
-    redirectUri: 'http://localhost:3000/callback',
+    issuer: 'http://localhost:8081',
+    callbackUrl: 'http://localhost:3000/callback',
   };
 
   const payload = {
@@ -37,17 +38,19 @@ describe('IdentifoAuth: ', () => {
 
   test('handleAuthentication should return true if has correct url and token', async () => {
     Object.defineProperty(window, 'location', {
-      value: { href: config.redirectUri, hash },
+      value: { href: config.callbackUrl, hash },
     });
     const handleAuthenticationStatus = await identifo.handleAuthentication();
     expect(handleAuthenticationStatus).toBe(true);
   });
 
-  test('getToken should return token object', async () => {
-    const tokenData = await identifo.getToken();
-    expect(Object.keys(tokenData)).toEqual(['token', 'payload']);
-    expect(typeof tokenData.token === 'string').toBe(true);
-    expect(tokenData.token).toBe(generatedToken);
+  test('getToken should return token object', () => {
+    const tokenData = identifo.getToken();
+    if (tokenData) {
+      expect(Object.keys(tokenData)).toEqual(['token', 'payload']);
+      expect(typeof tokenData.token === 'string').toBe(true);
+      expect(tokenData.token).toBe(generatedToken);
+    }
   });
 
   test('getAuthenticated should return auth status', async () => {
@@ -69,7 +72,7 @@ describe('IdentifoAuth: ', () => {
     const falsyHash = `#${falsyGeneratedToken}`;
     beforeAll(() => {
       Object.defineProperty(window, 'location', {
-        value: { href: config.redirectUri, hash: falsyHash },
+        value: { href: config.callbackUrl, hash: falsyHash },
       });
       window.localStorage.removeItem('identifo_access_token');
     });
@@ -78,8 +81,8 @@ describe('IdentifoAuth: ', () => {
       expect(status).toBe(false);
     });
 
-    test('getToken should return null if token is invalid', async () => {
-      const tokenData = await identifo.getToken();
+    test('getToken should return null if token is invalid', () => {
+      const tokenData = identifo.getToken();
       expect(tokenData).toBeNull();
     });
 

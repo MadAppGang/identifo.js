@@ -18,7 +18,7 @@ class SessionStorage implements TokenManager {
     return false;
   }
 
-  async getToken():Promise<string> {
+  getToken():string {
     return window.sessionStorage.getItem(this.key) ?? '';
   }
 

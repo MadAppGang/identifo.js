@@ -2,31 +2,44 @@ import { UrlBuilder } from '../src/UrlBuilder';
 
 describe('UrlBuilder: ', () => {
   const config = {
-    issuer: 'http://localhost:8081',
+    authUrl: 'http://localhost:8081',
     appId: '59fd884d8f6b180001f5b4e2',
     scopes: [],
-    redirectUri: 'http://localhost:3000',
+    returnTo: 'http://localhost:8081/returnTo',
+    callbackUrl: 'http://localhost:8081/callbackUrl',
   };
   const urlBuilder = UrlBuilder.init(config);
-  const urlParams = `?appId=${config.appId}&scopes=${JSON.stringify(config.scopes)}&callbackUrl=${config.redirectUri}`;
-
   test('should be defined and has methods', () => {
     expect(urlBuilder).toBeDefined();
     expect(Object.keys(urlBuilder))
-      .toEqual(['createSignUpUrl', 'createSignInUrl', 'createLogoutUrl', 'createRenewSessionURL']);
+      .toEqual(['createSignupUrl', 'createSigninUrl', 'createLogoutUrl', 'createRenewSessionUrl']);
   });
 
-  test('should return correct url', () => {
-    const signUpUrl = urlBuilder.createSignUpUrl();
-    const signInUrl = urlBuilder.createSignInUrl();
-    const logOut = urlBuilder.createLogoutUrl();
-    const renewSession = urlBuilder.createRenewSessionURL();
-    expect(signUpUrl).toBe(`${config.issuer}/web/register${urlParams}`);
-    expect(signInUrl).toBe(`${config.issuer}/web/login${urlParams}`);
-    expect(logOut).toBe(`${config.issuer}/web/logout${urlParams}`);
-    expect(renewSession).toBe(
-      `${config.issuer}/web/token/renew?appId=${config.appId}`
-      + `&scopes=${JSON.stringify(config.scopes)}&redirectUri=${config.redirectUri}`,
-    );
+  test('should return correct url (all params is defined)', () => {
+    const baseParams = `appId=${config.appId}&scopes=${JSON.stringify(config.scopes)}`;
+    const baseSuffixParam = `${baseParams}&callbackUrl=${config.callbackUrl}`;
+
+    expect(urlBuilder.createSignupUrl()).toBe(`${config.authUrl}/web/register?${baseSuffixParam}`);
+    expect(urlBuilder.createSigninUrl()).toBe(`${config.authUrl}/web/login?${baseSuffixParam}`);
+    expect(urlBuilder.createLogoutUrl()).toBe(`${config.authUrl}/web/logout?${baseParams}&callbackUrl=${config.returnTo}`);
+    expect(urlBuilder.createRenewSessionUrl())
+      .toBe(`${config.authUrl}/web/token/renew?${baseParams}&redirectUri=${config.callbackUrl}`);
+  });
+
+  test('should return correct url (only app id & authUrl are defined)', () => {
+    const urlConfig = {
+      authUrl: 'http://localhost:8081',
+      appId: '59fd884d8f6b180001f5b4e2',
+    };
+    const urls = UrlBuilder.init(urlConfig);
+    const baseParams = `appId=${urlConfig.appId}&scopes=${JSON.stringify([])}`;
+    const baseSuffixParam = `${baseParams}&callbackUrl=${window.location.href}`;
+
+    expect(urls.createSignupUrl()).toBe(`${urlConfig.authUrl}/web/register?${baseSuffixParam}`);
+    expect(urls.createSigninUrl()).toBe(`${urlConfig.authUrl}/web/login?${baseSuffixParam}`);
+    expect(urls.createLogoutUrl())
+      .toBe(`${urlConfig.authUrl}/web/logout?${baseParams}&callbackUrl=`);
+    expect(urls.createRenewSessionUrl())
+      .toBe(`${urlConfig.authUrl}/web/token/renew?${baseParams}&redirectUri=${window.location.href}`);
   });
 });

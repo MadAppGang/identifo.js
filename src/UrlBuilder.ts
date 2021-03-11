@@ -2,32 +2,44 @@ import { UrlBuilderType, IdentifoConfig } from './types/types';
 
 export const UrlBuilder:UrlBuilderType = {
   config: {} as IdentifoConfig<string>,
-  urlParams: '',
-
   init(config) {
-    this.config = { ...config, scopes: JSON.stringify(config.scopes) };
-    this.urlParams = `?appId=${this.config.appId}&scopes=${this.config.scopes}&callbackUrl=${this.config.redirectUri}`;
+    this.config = { ...config, scopes: JSON.stringify(config.scopes ?? []) };
+
     return {
-      createSignUpUrl: this.createSignUpUrl.bind(this),
-      createSignInUrl: this.createSignInUrl.bind(this),
+      createSignupUrl: this.createSignupUrl.bind(this),
+      createSigninUrl: this.createSigninUrl.bind(this),
       createLogoutUrl: this.createLogoutUrl.bind(this),
-      createRenewSessionURL: this.createRenewSessionURL.bind(this),
+      createRenewSessionUrl: this.createRenewSessionUrl.bind(this),
     };
   },
+  getUrl(flow:string) {
+    const callbackUrl = this.config.callbackUrl ?? window.location.href;
+    const returnTo = this.config.returnTo ?? '';
 
-  createSignUpUrl() {
-    return `${this.config.issuer}/web/register${this.urlParams}`;
+    const baseParams = `appId=${this.config.appId}&scopes=${this.config.scopes}`;
+    const urlParams = `${baseParams}&callbackUrl=${callbackUrl}`;
+
+    const urls = {
+      signup: `${this.config.authUrl}/web/register?${urlParams}`,
+      signin: `${this.config.authUrl}/web/login?${urlParams}`,
+      logout: `${this.config.authUrl}/web/logout?${baseParams}&callbackUrl=${returnTo}`,
+      renew: `${this.config.authUrl}/web/token/renew?${baseParams}&redirectUri=${callbackUrl}`,
+      default: 'default',
+    };
+    return urls[flow as keyof typeof urls] || urls.default;
+  },
+  createSignupUrl() {
+    return this.getUrl('signup');
   },
 
-  createSignInUrl() {
-    return `${this.config.issuer}/web/login${this.urlParams}`;
+  createSigninUrl() {
+    return this.getUrl('signin');
   },
 
   createLogoutUrl() {
-    return `${this.config.issuer}/web/logout${this.urlParams}`;
+    return this.getUrl('logout');
   },
-  createRenewSessionURL() {
-    return `${this.config.issuer}/web/token/renew?`
-    + `appId=${this.config.appId}&scopes=${this.config.scopes}&redirectUri=${this.config.redirectUri}`;
+  createRenewSessionUrl() {
+    return this.getUrl('renew');
   },
 };

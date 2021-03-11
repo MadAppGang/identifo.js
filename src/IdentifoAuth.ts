@@ -5,7 +5,7 @@ import { ClientToken, IdentifoConfig, UrlBuilderInit } from './types/types';
 import { UrlBuilder } from './UrlBuilder';
 
 class IdentifoAuth {
-  private config;
+  private config:IdentifoConfig<string[]>;
 
   private urlBuilder: UrlBuilderInit;
 
@@ -14,20 +14,20 @@ class IdentifoAuth {
   constructor(config:IdentifoConfig<string[]>) {
     this.config = config;
     this.tokenService = new TokenService(config.tokenManager);
-    this.urlBuilder = UrlBuilder.init(config);
+    this.urlBuilder = UrlBuilder.init(this.config);
     // TODO: is auto handle needed?
     // void this.handleAuthentication();
   }
 
-  signUp():void {
-    window.location.href = this.urlBuilder.createSignUpUrl();
+  signup():void {
+    window.location.href = this.urlBuilder.createSignupUrl();
   }
 
-  signIn():void {
-    window.location.href = this.urlBuilder.createSignInUrl();
+  signin():void {
+    window.location.href = this.urlBuilder.createSigninUrl();
   }
 
-  logOut():void {
+  logout():void {
     this.tokenService.removeToken();
     window.location.href = this.urlBuilder.createLogoutUrl();
   }
@@ -56,8 +56,8 @@ class IdentifoAuth {
     return '';
   }
 
-  async getToken():Promise<ClientToken | null> {
-    const token = await this.tokenService.getToken();
+  getToken():ClientToken | null {
+    const token = this.tokenService.getToken();
     return token;
   }
 
@@ -80,7 +80,7 @@ class IdentifoAuth {
     }, 30000);
 
     try {
-      const token = await Iframe.captureMessage(iframe, this.urlBuilder.createRenewSessionURL());
+      const token = await Iframe.captureMessage(iframe, this.urlBuilder.createRenewSessionUrl());
       await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
       return token;
     } catch (err) {

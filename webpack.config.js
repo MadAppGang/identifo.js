@@ -6,6 +6,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 module.exports = {
   target: "web",
   entry: './src/index.ts',
+  // devtool: 'source-map', // source map for develop
   output: {
     path: path.resolve(__dirname, "./dist"),
     filename: "lib/identifo-js.js",
