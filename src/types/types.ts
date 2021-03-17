@@ -10,10 +10,10 @@ export interface TokenManager {
 export type IdentifoConfig<S> = {
   issuer?: string, // TODO: array of string?
   appId: string,
-  authUrl: string,
+  url: string,
   scopes?: S,
-  callbackUrl?: string,
-  returnTo?: string,
+  redirectUri?: string,
+  postLogoutRedirectUri?: string,
   // debugMode?: boolean,
   tokenManager?: TokenManager
 };

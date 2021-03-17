@@ -13,17 +13,17 @@ export const UrlBuilder:UrlBuilderType = {
     };
   },
   getUrl(flow:string) {
-    const callbackUrl = this.config.callbackUrl ?? window.location.href;
-    const returnTo = this.config.returnTo ?? '';
+    const redirectUri = this.config.redirectUri ?? window.location.href;
+    const postLogoutRedirectUri = this.config.postLogoutRedirectUri ?? '';
 
     const baseParams = `appId=${this.config.appId}&scopes=${this.config.scopes}`;
-    const urlParams = `${baseParams}&callbackUrl=${callbackUrl}`;
+    const urlParams = `${baseParams}&callbackUrl=${redirectUri}`;
 
     const urls = {
-      signup: `${this.config.authUrl}/web/register?${urlParams}`,
-      signin: `${this.config.authUrl}/web/login?${urlParams}`,
-      logout: `${this.config.authUrl}/web/logout?${baseParams}&callbackUrl=${returnTo}`,
-      renew: `${this.config.authUrl}/web/token/renew?${baseParams}&redirectUri=${callbackUrl}`,
+      signup: `${this.config.url}/web/register?${urlParams}`,
+      signin: `${this.config.url}/web/login?${urlParams}`,
+      logout: `${this.config.url}/web/logout?${baseParams}&callbackUrl=${postLogoutRedirectUri}`,
+      renew: `${this.config.url}/web/token/renew?${baseParams}&redirectUri=${redirectUri}`,
       default: 'default',
     };
     return urls[flow as keyof typeof urls] || urls.default;

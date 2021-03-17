@@ -6,11 +6,11 @@ const jwt = require('jwt-simple');
 
 describe('IdentifoAuth: ', () => {
   const config = {
-    authUrl: 'http://localhost:8081',
+    url: 'http://localhost:8081',
     appId: '59fd884d8f6b180001f5b4e2',
     scopes: [],
     issuer: 'http://localhost:8081',
-    callbackUrl: 'http://localhost:3000/callback',
+    redirectUri: 'http://localhost:3000/callback',
   };
 
   const payload = {
@@ -38,7 +38,7 @@ describe('IdentifoAuth: ', () => {
 
   test('handleAuthentication should return true if has correct url and token', async () => {
     Object.defineProperty(window, 'location', {
-      value: { href: config.callbackUrl, hash },
+      value: { href: config.redirectUri, hash },
     });
     const handleAuthenticationStatus = await identifo.handleAuthentication();
     expect(handleAuthenticationStatus).toBe(true);
@@ -72,7 +72,7 @@ describe('IdentifoAuth: ', () => {
     const falsyHash = `#${falsyGeneratedToken}`;
     beforeAll(() => {
       Object.defineProperty(window, 'location', {
-        value: { href: config.callbackUrl, hash: falsyHash },
+        value: { href: config.redirectUri, hash: falsyHash },
       });
       window.localStorage.removeItem('identifo_access_token');
     });
