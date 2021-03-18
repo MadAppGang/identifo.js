@@ -18,7 +18,7 @@ class LocalStorage implements TokenManager {
     return false;
   }
 
-  async getToken():Promise<string> {
+  getToken():string {
     return window.localStorage.getItem(this.key) ?? '';
   }
 

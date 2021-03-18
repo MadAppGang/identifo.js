@@ -16,21 +16,25 @@ describe('Token Service: ', () => {
   const token = jwt.encode(payload, 'secret');
 
   describe('handleVerification: ', () => {
-    test('Should return be truthy', async () => {
+    test('Should be truthy', async () => {
       expect(await tokenService.handleVerification(token, audience, issuer)).toBeTruthy();
+      expect(await tokenService.handleVerification(token, audience)).toBeTruthy();
     });
     test('Should return throw Error with inccorect token', () => {
       expect(tokenService.handleVerification('token', audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
+      expect(tokenService.handleVerification('token', audience)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
     });
   });
 
   describe('validateToken: ', () => {
-    test('Should return be truthy', async () => {
+    test('Should be truthy', async () => {
       expect(await tokenService.validateToken(token, audience, issuer)).toBeTruthy();
+      expect(await tokenService.validateToken(token, audience)).toBeTruthy();
     });
-    test('Should return throw Error with inccorect token', () => {
+    test('Should return throw Error with inccorect token or issuer', () => {
       expect(tokenService.validateToken('token', audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
       expect(tokenService.validateToken('', audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
+      expect(tokenService.validateToken(token, audience, 'issuer')).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
     });
   });
 
@@ -66,6 +70,8 @@ describe('Token Service: ', () => {
       expect(tokenService.isAuthenticated(audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
       await tokenService.saveToken(token);
       expect(tokenService.isAuthenticated(audience, issuer)).resolves.toBeTruthy();
+      expect(tokenService.isAuthenticated(audience)).resolves.toBeTruthy();
+      expect(tokenService.isAuthenticated(audience, 'issuer')).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
     });
   });
 
@@ -79,11 +85,13 @@ describe('Token Service: ', () => {
   describe('getToken: ', () => {
     test('Should return token from storage', async () => {
       await tokenService.saveToken(token);
-      let retrievedToken = await tokenService.getToken();
-      expect(Object.keys(retrievedToken)).toEqual(['token', 'payload']);
-      expect(retrievedToken.token).toBe(token);
+      let retrievedToken = tokenService.getToken();
+      if (retrievedToken) {
+        expect(Object.keys(retrievedToken)).toEqual(['token', 'payload']);
+        expect(retrievedToken.token).toBe(token);
+      }
       await tokenService.saveToken('token');
-      retrievedToken = await tokenService.getToken();
+      retrievedToken = tokenService.getToken();
       expect(retrievedToken).toBe(null);
     });
   });

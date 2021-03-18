@@ -3,29 +3,31 @@ import { JWSHeaderParameters } from 'jose/webcrypto/types';
 export interface TokenManager {
   isAccessible: boolean
   saveToken:(token:string) => Promise<boolean>
-  getToken:() => Promise<string>
+  getToken:() => string
   deleteToken:() => void
 }
 
 export type IdentifoConfig<S> = {
-  issuer: string,
+  issuer?: string, // TODO: array of string?
   appId: string,
-  scopes: S,
-  redirectUri: string,
+  url: string,
+  scopes?: S,
+  redirectUri?: string,
+  postLogoutRedirectUri?: string,
   // debugMode?: boolean,
   tokenManager?: TokenManager
 };
 
 export type UrlBuilderInit = {
-  createSignUpUrl: () => string,
-  createSignInUrl: () => string,
+  createSignupUrl: () => string,
+  createSigninUrl: () => string,
   createLogoutUrl: () => string,
-  createRenewSessionURL: () => string,
+  createRenewSessionUrl: () => string,
 };
 
 export type UrlBuilderType = UrlBuilderInit & {
   config: IdentifoConfig<string>,
-  urlParams: string,
+  getUrl: (flow:string) => string,
   init: (config:IdentifoConfig<string[]>) => UrlBuilderInit,
 };
 

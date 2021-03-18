@@ -8,7 +8,7 @@ class CookieStorage implements TokenManager {
     return true;
   }
 
-  async getToken():Promise<string> {
+  getToken():string {
     throw new Error('Can not get token from HttpOnly');
   }
 

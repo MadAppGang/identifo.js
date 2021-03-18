@@ -17,10 +17,6 @@ const Iframe = {
   captureMessage(iframe:HTMLIFrameElement, src:string):Promise<string> {
     return new Promise((resolve, reject) => {
       const handleMessage = (event:MessageEvent<{error:string, accessToken:string}>) => {
-        if (event.origin === window.location.origin) {
-          return;
-        }
-
         if (event.data.error) reject(event.data.error);
 
         resolve(event.data.accessToken);
