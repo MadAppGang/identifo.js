@@ -7,12 +7,13 @@ const authInstance = axios.create({
 });
 
 export const api = {
-  async getMe(token:string):Promise<any> {
-    return authInstance.get('/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+  async getMe(token: string): Promise<any> {
+    return authInstance
+      .get('/me', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((r) => r.data);
   },
 };

@@ -6,11 +6,11 @@ class SessionStorage implements TokenManager {
 
   isAccessible = true;
 
-  constructor(key?:string) {
+  constructor(key?: string) {
     this.key = key || this.key;
   }
 
-  async saveToken(token:string):Promise<boolean> {
+  async saveToken(token: string): Promise<boolean> {
     if (token) {
       window.sessionStorage.setItem(this.key, token);
       return true;
@@ -18,11 +18,11 @@ class SessionStorage implements TokenManager {
     return false;
   }
 
-  getToken():string {
+  getToken(): string {
     return window.sessionStorage.getItem(this.key) ?? '';
   }
 
-  deleteToken():void {
+  deleteToken(): void {
     window.sessionStorage.removeItem(this.key);
   }
 }

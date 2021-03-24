@@ -6,11 +6,11 @@ class LocalStorage implements TokenManager {
 
   isAccessible = true;
 
-  constructor(key?:string) {
+  constructor(key?: string) {
     this.key = key || this.key;
   }
 
-  async saveToken(token:string):Promise<boolean> {
+  async saveToken(token: string): Promise<boolean> {
     if (token) {
       window.localStorage.setItem(this.key, token);
       return true;
@@ -18,11 +18,11 @@ class LocalStorage implements TokenManager {
     return false;
   }
 
-  getToken():string {
+  getToken(): string {
     return window.localStorage.getItem(this.key) ?? '';
   }
 
-  deleteToken():void {
+  deleteToken(): void {
     window.localStorage.removeItem(this.key);
   }
 }
