@@ -2,7 +2,7 @@ import { JWSHeaderParameters } from 'jose/webcrypto/types';
 
 export interface TokenManager {
   isAccessible: boolean
-  saveToken:(token:string) => Promise<boolean>
+  saveToken:(token:string) => boolean
   getToken:() => string
   deleteToken:() => void
 }
@@ -14,8 +14,9 @@ export type IdentifoConfig<S> = {
   scopes?: S,
   redirectUri?: string,
   postLogoutRedirectUri?: string,
+  tokenManager?: TokenManager,
+  autoRenew?: boolean
   // debugMode?: boolean,
-  tokenManager?: TokenManager
 };
 
 export type UrlBuilderInit = {

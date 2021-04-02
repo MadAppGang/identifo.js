@@ -10,7 +10,7 @@ class SessionStorage implements TokenManager {
     this.key = key || this.key;
   }
 
-  async saveToken(token:string):Promise<boolean> {
+  saveToken(token:string):boolean {
     if (token) {
       window.sessionStorage.setItem(this.key, token);
       return true;

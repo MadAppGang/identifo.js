@@ -4,7 +4,7 @@ import { TokenManager } from '../types/types';
 class CookieStorage implements TokenManager {
   isAccessible = false;
 
-  async saveToken():Promise<boolean> {
+  saveToken():boolean {
     return true;
   }
 

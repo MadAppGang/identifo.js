@@ -15,7 +15,7 @@ class TokenService {
     if (!this.tokenManager.isAccessible) return true;
     try {
       await this.validateToken(token, audience, issuer);
-      await this.tokenManager.saveToken(token);
+      this.tokenManager.saveToken(token);
       return true;
     } catch (err) {
       this.removeToken();
@@ -58,7 +58,7 @@ class TokenService {
     return this.validateToken(token, audience, issuer);
   }
 
-  async saveToken(token:string):Promise<boolean> {
+  saveToken(token:string):boolean {
     return this.tokenManager.saveToken(token);
   }
 
@@ -70,11 +70,7 @@ class TokenService {
     const token = this.tokenManager.getToken();
     if (!token) return null;
     const jwtPayload = this.parseJWT(token);
-    const isJwtExpired = this.isJWTExpired(jwtPayload);
-    if (!isJwtExpired) {
-      return { token, payload: jwtPayload };
-    }
-    return null;
+    return { token, payload: jwtPayload };
   }
 }
 
