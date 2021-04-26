@@ -77,14 +77,14 @@ class IdentifoAuth {
   async handleAuthentication():Promise<boolean> {
     const token = this.getTokenFromUrl();
     if (!token) {
-      return false;
+      return Promise.reject();
     }
     try {
       await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
       this.handleToken(token);
       return true;
     } catch (err) {
-      return false;
+      return Promise.reject();
     } finally {
       window.location.hash = '';
     }
@@ -99,8 +99,11 @@ class IdentifoAuth {
     return '';
   }
 
-  getToken():ClientToken | null {
-    return this.token;
+  getToken():ClientToken {
+    if (this.token) {
+      return this.token;
+    }
+    return { token: '', payload: {} };
   }
 
   async renewSession():Promise<string> {
