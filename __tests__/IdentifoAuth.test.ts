@@ -25,11 +25,8 @@ describe('IdentifoAuth: ', () => {
 
   test('should be defined', () => {
     expect(identifo).toBeDefined();
-  });
-
-  test('should return auth status', async () => {
-    const authStatus = await identifo.getAuthenticated();
-    expect(typeof authStatus === 'boolean').toBe(true);
+    expect(identifo.isAuth).toBe(false);
+    expect(identifo.getToken()).toBeNull();
   });
 
   test('handleAuthentication should return false when has no token', () => {
@@ -53,10 +50,6 @@ describe('IdentifoAuth: ', () => {
     }
   });
 
-  test('getAuthenticated should return auth status', async () => {
-    expect(await identifo.getAuthenticated()).toBe(true);
-  });
-
   test('renewSession should return generated token', async () => {
     jest.spyOn(Iframe, 'captureMessage')
       .mockImplementation(() => Promise.resolve(generatedToken));
@@ -72,7 +65,7 @@ describe('IdentifoAuth: ', () => {
     const falsyHash = `#${falsyGeneratedToken}`;
     beforeAll(() => {
       Object.defineProperty(window, 'location', {
-        value: { href: config.redirectUri, hash: falsyHash },
+        value: { href: config.redirectUri, hash: 'falsyHash' },
       });
       window.localStorage.removeItem('identifo_access_token');
     });
@@ -84,10 +77,6 @@ describe('IdentifoAuth: ', () => {
     test('getToken should return null if token is invalid', () => {
       const tokenData = identifo.getToken();
       expect(tokenData).toBeNull();
-    });
-
-    test('getAuthenticated should be falsy', async () => {
-      expect(await identifo.getAuthenticated()).toBe(false);
     });
 
     test('renewSession should be rejected', () => {

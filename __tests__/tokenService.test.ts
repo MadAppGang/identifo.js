@@ -66,9 +66,9 @@ describe('Token Service: ', () => {
   });
 
   describe('isAuthenticated: ', () => {
-    test('Should return isAuthenticated status', async () => {
+    test('Should return isAuthenticated status', () => {
       expect(tokenService.isAuthenticated(audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
-      await tokenService.saveToken(token);
+      tokenService.saveToken(token);
       expect(tokenService.isAuthenticated(audience, issuer)).resolves.toBeTruthy();
       expect(tokenService.isAuthenticated(audience)).resolves.toBeTruthy();
       expect(tokenService.isAuthenticated(audience, 'issuer')).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
@@ -77,22 +77,25 @@ describe('Token Service: ', () => {
 
   describe('saveToken: ', () => {
     test('Should resolve with save status', () => {
-      expect(tokenService.saveToken(token)).resolves.toBe(true);
-      expect(tokenService.saveToken('')).resolves.toBe(false);
+      expect(tokenService.saveToken(token)).toBe(true);
+      expect(tokenService.saveToken('')).toBe(false);
     });
   });
 
   describe('getToken: ', () => {
-    test('Should return token from storage', async () => {
-      await tokenService.saveToken(token);
+    test('Should return token from storage', () => {
+      tokenService.saveToken(token);
       let retrievedToken = tokenService.getToken();
       if (retrievedToken) {
         expect(Object.keys(retrievedToken)).toEqual(['token', 'payload']);
         expect(retrievedToken.token).toBe(token);
       }
-      await tokenService.saveToken('token');
+      tokenService.saveToken('not valid token');
       retrievedToken = tokenService.getToken();
-      expect(retrievedToken).toBe(null);
+      if (retrievedToken) {
+        expect(retrievedToken.payload).toEqual({ aud: '', exp: 10, iss: '' });
+        expect(retrievedToken.token).toBe('not valid token');
+      }
     });
   });
 });
