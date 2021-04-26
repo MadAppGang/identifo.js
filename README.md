@@ -9,17 +9,17 @@ Browser library for authentication through [Identifo](https://github.com/madappG
 ```bash
 # Run this command in your project root folder.
 # yarn
-$ yarn add @madappgang/identifo-js
+$ yarn add @identifo/identifo-auth-js
 
 # npm
-$ npm install @madappgang/identifo-js
+$ npm install @identifo/identifo-auth-js
 ```
 
 ## Usage
 
 ### Initialize
 ```javascript
-  import IdentifoAuth from '@madappgang/identifo-js';
+  import IdentifoAuth from '@identifo/identifo-auth-js';
 
   const identifo = new IdentifoAuth({
     url: 'http://localhost:8081', // URI of your Identifo server.
@@ -62,7 +62,7 @@ Logout and redirects back to `postLogoutRedirectUri` the user out of their curre
 ```
 #### TokenManager
 ```javascript
-import IdentifoAuth, { SessionStorageManager } from '@madappgang/identifo-js';
+import IdentifoAuth, { SessionStorageManager } from '@identifo/identifo-auth-js';
 
 const identifo = new IdentifoAuth({
     appId: 'your app ID',

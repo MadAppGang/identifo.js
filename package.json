@@ -1,6 +1,6 @@
 {
-  "name": "@madappgang/identifo-js",
-  "version": "3.0.0",
+  "name": "@identifo/identifo-auth-js",
+  "version": "3.0.1",
   "description": "Library for web-auth through Identifo",
   "main": "./dist/lib/identifo-js.js",
   "types": "./dist/index.d.ts",
