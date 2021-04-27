@@ -2,9 +2,9 @@ import { JWSHeaderParameters } from 'jose/webcrypto/types';
 
 export interface TokenManager {
   isAccessible: boolean
-  saveToken:(token:string) => boolean
-  getToken:() => string
-  deleteToken:() => void
+  saveToken: (token: string) => boolean
+  getToken: () => string
+  deleteToken: () => void
 }
 
 export type IdentifoConfig<S> = {
@@ -26,10 +26,12 @@ export type UrlBuilderInit = {
   createRenewSessionUrl: () => string,
 };
 
+export type UrlFlows = 'signin' | 'signup' | 'logout' | 'renew' | 'default';
+
 export type UrlBuilderType = UrlBuilderInit & {
   config: IdentifoConfig<string>,
-  getUrl: (flow:string) => string,
-  init: (config:IdentifoConfig<string[]>) => UrlBuilderInit,
+  getUrl: (flow: UrlFlows) => string,
+  init: (config: IdentifoConfig<string[]>) => UrlBuilderInit,
 };
 
 // TOKEN

@@ -3,14 +3,22 @@
     "outDir": "dist",
     "module": "ES6",
     "target": "ES5",
+    "lib": [
+      "ESNext"
+    ],
     "noImplicitAny": true,
     "moduleResolution": "node",
-    "sourceMap": false,
+    "sourceMap": true,
     "esModuleInterop": true,
     "declaration": true,
     "strict": true,
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "include": ["src", "**/*.tsx", "**/*.ts", "**/*.js"],
+  "include": [
+    "src",
+    "**/*.tsx",
+    "**/*.ts",
+    "**/*.js"
+  ],
 }
