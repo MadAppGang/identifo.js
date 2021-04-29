@@ -1,4 +1,4 @@
-import { UrlBuilderType, IdentifoConfig } from './types/types';
+import { UrlBuilderType, IdentifoConfig, UrlFlows } from './types/types';
 
 export const UrlBuilder:UrlBuilderType = {
   config: {} as IdentifoConfig<string>,
@@ -12,12 +12,13 @@ export const UrlBuilder:UrlBuilderType = {
       createRenewSessionUrl: this.createRenewSessionUrl.bind(this),
     };
   },
-  getUrl(flow:string) {
-    const redirectUri = this.config.redirectUri ?? window.location.href;
-    const postLogoutRedirectUri = this.config.postLogoutRedirectUri ?? '';
-
+  getUrl(flow: UrlFlows) {
+    const redirectUri = encodeURIComponent(this.config.redirectUri ?? window.location.href);
     const baseParams = `appId=${this.config.appId}&scopes=${this.config.scopes}`;
     const urlParams = `${baseParams}&callbackUrl=${redirectUri}`;
+    // if postLogoutRedirectUri is empty, login url will be instead
+    const postLogoutRedirectUri = this.config.postLogoutRedirectUri
+    || `${this.config.url}/web/login?${encodeURIComponent(urlParams)}`;
 
     const urls = {
       signup: `${this.config.url}/web/register?${urlParams}`,
@@ -26,7 +27,8 @@ export const UrlBuilder:UrlBuilderType = {
       renew: `${this.config.url}/web/token/renew?${baseParams}&redirectUri=${redirectUri}`,
       default: 'default',
     };
-    return urls[flow as keyof typeof urls] || urls.default;
+
+    return urls[flow] || urls.default;
   },
   createSignupUrl() {
     return this.getUrl('signup');

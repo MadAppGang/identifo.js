@@ -6,23 +6,25 @@ import { ClientToken, IdentifoConfig, UrlBuilderInit } from './types/types';
 import { UrlBuilder } from './UrlBuilder';
 
 class IdentifoAuth {
-  private config:IdentifoConfig<string[]>;
+  private config: IdentifoConfig<string[]>;
 
   private urlBuilder: UrlBuilderInit;
 
-  private tokenService:TokenService;
+  private tokenService: TokenService;
 
   private token: ClientToken | null = null;
 
+  private renewSessionId: number | undefined;
+
   isAuth = false;
 
-  constructor(config:IdentifoConfig<string[]>) {
-    this.config = config;
+  constructor(config: IdentifoConfig<string[]>) {
+    this.config = { ...config, autoRenew: config.autoRenew ?? true };
     this.tokenService = new TokenService(config.tokenManager);
     this.urlBuilder = UrlBuilder.init(this.config);
   }
 
-  init():void {
+  init(): void {
     const token = this.tokenService.getToken();
     if (token) {
       const isExpired = this.tokenService.isJWTExpired(token.payload);
@@ -36,14 +38,16 @@ class IdentifoAuth {
     }
   }
 
-  private handleToken(token:string) {
+  private handleToken(token: string) {
     const payload = this.tokenService.parseJWT(token);
     this.token = { token, payload };
     this.isAuth = true;
     this.tokenService.saveToken(token);
+    if (this.renewSessionId) {
+      window.clearTimeout(this.renewSessionId);
+    }
     if (payload.exp) {
-      const timerId = setTimeout(() => {
-        clearTimeout(timerId);
+      this.renewSessionId = window.setTimeout(() => {
         if (this.config.autoRenew) {
           this.renewSession()
             .then((t) => this.handleToken(t))
@@ -61,20 +65,20 @@ class IdentifoAuth {
     this.tokenService.removeToken();
   }
 
-  signup():void {
+  signup(): void {
     window.location.href = this.urlBuilder.createSignupUrl();
   }
 
-  signin():void {
+  signin(): void {
     window.location.href = this.urlBuilder.createSigninUrl();
   }
 
-  logout():void {
+  logout(): void {
     this.tokenService.removeToken();
     window.location.href = this.urlBuilder.createLogoutUrl();
   }
 
-  async handleAuthentication():Promise<boolean> {
+  async handleAuthentication(): Promise<boolean> {
     const token = this.getTokenFromUrl();
     if (!token) {
       return Promise.reject();
@@ -82,7 +86,7 @@ class IdentifoAuth {
     try {
       await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
       this.handleToken(token);
-      return true;
+      return Promise.resolve(true);
     } catch (err) {
       return Promise.reject();
     } finally {
@@ -90,7 +94,7 @@ class IdentifoAuth {
     }
   }
 
-  private getTokenFromUrl():string {
+  private getTokenFromUrl(): string {
     const { hash } = window.location;
     const token = hash.slice(1);
     if (jwtRegex.test(token)) {
@@ -99,14 +103,14 @@ class IdentifoAuth {
     return '';
   }
 
-  getToken():ClientToken {
+  getToken(): ClientToken {
     if (this.token) {
       return this.token;
     }
     return { token: '', payload: {} };
   }
 
-  async renewSession():Promise<string> {
+  async renewSession(): Promise<string> {
     try {
       const token = await this.renewSessionWithIframe();
       this.handleToken(token);
@@ -116,7 +120,7 @@ class IdentifoAuth {
     }
   }
 
-  private async renewSessionWithToken():Promise<string> {
+  private async renewSessionWithToken(): Promise<string> {
     try {
       const r = await api.renewToken(this.urlBuilder.createRenewSessionUrl());
       return r;
@@ -125,7 +129,7 @@ class IdentifoAuth {
     }
   }
 
-  private async renewSessionWithIframe():Promise<string> {
+  private async renewSessionWithIframe(): Promise<string> {
     const iframe = Iframe.create();
     const timeout = setTimeout(() => {
       Iframe.remove(iframe);
