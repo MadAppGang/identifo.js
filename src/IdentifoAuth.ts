@@ -5,13 +5,13 @@ import { ClientToken, IdentifoConfig, UrlBuilderInit } from './types/types';
 import { UrlBuilder } from './UrlBuilder';
 
 class IdentifoAuth {
-  private config:IdentifoConfig<string[]>;
+  private config: IdentifoConfig<string[]>;
 
   private urlBuilder: UrlBuilderInit;
 
-  private tokenService:TokenService;
+  private tokenService: TokenService;
 
-  constructor(config:IdentifoConfig<string[]>) {
+  constructor(config: IdentifoConfig<string[]>) {
     this.config = config;
     this.tokenService = new TokenService(config.tokenManager);
     this.urlBuilder = UrlBuilder.init(this.config);
@@ -19,20 +19,20 @@ class IdentifoAuth {
     // void this.handleAuthentication();
   }
 
-  signup():void {
+  signup(): void {
     window.location.href = this.urlBuilder.createSignupUrl();
   }
 
-  signin():void {
+  signin(): void {
     window.location.href = this.urlBuilder.createSigninUrl();
   }
 
-  logout():void {
+  logout(): void {
     this.tokenService.removeToken();
     window.location.href = this.urlBuilder.createLogoutUrl();
   }
 
-  async handleAuthentication():Promise<boolean> {
+  async handleAuthentication(): Promise<boolean> {
     const token = this.getTokenFromUrl();
     if (!token) {
       return false;
@@ -47,7 +47,7 @@ class IdentifoAuth {
     }
   }
 
-  private getTokenFromUrl():string {
+  private getTokenFromUrl(): string {
     const { hash } = window.location;
     const token = hash.slice(1);
     if (jwtRegex.test(token)) {
@@ -56,12 +56,12 @@ class IdentifoAuth {
     return '';
   }
 
-  getToken():ClientToken | null {
+  getToken(): ClientToken | null {
     const token = this.tokenService.getToken();
     return token;
   }
 
-  async getAuthenticated():Promise<boolean> {
+  async getAuthenticated(): Promise<boolean> {
     // TODO: Implement auth request / correct flow
     // await api.getMe(tokenData?.token ?? '');
     try {
@@ -72,7 +72,7 @@ class IdentifoAuth {
     }
   }
 
-  async renewSession():Promise<string> {
+  async renewSession(): Promise<string> {
     const iframe = Iframe.create();
     const timeout = setTimeout(() => {
       Iframe.remove(iframe);

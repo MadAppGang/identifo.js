@@ -1,6 +1,6 @@
 import { UrlBuilderType, IdentifoConfig } from './types/types';
 
-export const UrlBuilder:UrlBuilderType = {
+export const UrlBuilder: UrlBuilderType = {
   config: {} as IdentifoConfig<string>,
   init(config) {
     this.config = { ...config, scopes: JSON.stringify(config.scopes ?? []) };
@@ -12,7 +12,7 @@ export const UrlBuilder:UrlBuilderType = {
       createRenewSessionUrl: this.createRenewSessionUrl.bind(this),
     };
   },
-  getUrl(flow:string) {
+  getUrl(flow: string) {
     const redirectUri = this.config.redirectUri ?? window.location.href;
     const postLogoutRedirectUri = this.config.postLogoutRedirectUri ?? '';
 
