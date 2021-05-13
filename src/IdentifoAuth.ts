@@ -1,5 +1,5 @@
 import { api } from './api/api';
-import { jwtRegex } from './constants';
+import { jwtRegex, REFRESH_TOKEN_QUERY_KEY, TOKEN_QUERY_KEY } from './constants';
 import Iframe from './iframe';
 import TokenService from './tokenService';
 import { ClientToken, IdentifoConfig, UrlBuilderInit } from './types/types';
@@ -13,6 +13,8 @@ class IdentifoAuth {
   private tokenService: TokenService;
 
   private token: ClientToken | null = null;
+
+  private refreshToken: string | null = null;
 
   private renewSessionId: number | undefined;
 
@@ -79,13 +81,13 @@ class IdentifoAuth {
   }
 
   async handleAuthentication(): Promise<boolean> {
-    const token = this.getTokenFromUrl();
-    if (!token) {
+    const { access } = this.getTokenFromUrl();
+    if (!access) {
       return Promise.reject();
     }
     try {
-      await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
-      this.handleToken(token);
+      await this.tokenService.handleVerification(access, this.config.appId, this.config.issuer);
+      this.handleToken(access);
       return Promise.resolve(true);
     } catch (err) {
       return Promise.reject();
@@ -94,19 +96,27 @@ class IdentifoAuth {
     }
   }
 
-  private getTokenFromUrl(): string {
-    const { hash } = window.location;
-    const token = hash.slice(1);
-    if (jwtRegex.test(token)) {
-      return token;
+  private getTokenFromUrl(): { access: string, refresh: string } {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokens = { access: '', refresh: '' };
+    const accessToken = urlParams.get(TOKEN_QUERY_KEY);
+    const refreshToken = urlParams.get(REFRESH_TOKEN_QUERY_KEY);
+
+    if (refreshToken && jwtRegex.test(refreshToken)) {
+      tokens.refresh = refreshToken;
     }
-    return '';
+    if (accessToken && jwtRegex.test(accessToken)) {
+      tokens.access = accessToken;
+    }
+
+    return tokens;
   }
 
   getToken(): ClientToken {
     if (this.token) {
       return this.token;
     }
+
     return { token: '', payload: {} };
   }
 

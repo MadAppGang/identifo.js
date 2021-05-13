@@ -1,29 +1,8 @@
-/* eslint-disable @typescript-eslint/require-await */
-import { TokenManager } from '../types/types';
+import StorageManager from './storage-manager';
 
-class SessionStorage implements TokenManager {
-  key = 'identifo_access_token';
-
-  isAccessible = true;
-
-  constructor(key?:string) {
-    this.key = key || this.key;
-  }
-
-  saveToken(token:string):boolean {
-    if (token) {
-      window.sessionStorage.setItem(this.key, token);
-      return true;
-    }
-    return false;
-  }
-
-  getToken():string {
-    return window.sessionStorage.getItem(this.key) ?? '';
-  }
-
-  deleteToken():void {
-    window.sessionStorage.removeItem(this.key);
+class SessionStorage extends StorageManager {
+  constructor(accessKey?: string, refreshKey?: string) {
+    super('sessionStorage', accessKey, refreshKey);
   }
 }
 
