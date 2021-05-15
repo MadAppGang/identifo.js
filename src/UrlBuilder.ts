@@ -1,6 +1,6 @@
 import { UrlBuilderType, IdentifoConfig, UrlFlows } from './types/types';
 
-export const UrlBuilder:UrlBuilderType = {
+export const UrlBuilder: UrlBuilderType = {
   config: {} as IdentifoConfig<string>,
   init(config) {
     this.config = { ...config, scopes: JSON.stringify(config.scopes ?? []) };
@@ -18,12 +18,13 @@ export const UrlBuilder:UrlBuilderType = {
     const urlParams = `${baseParams}&callbackUrl=${redirectUri}`;
     // if postLogoutRedirectUri is empty, login url will be instead
     const postLogoutRedirectUri = this.config.postLogoutRedirectUri
-    || `${this.config.url}/web/login?${encodeURIComponent(urlParams)}`;
+      ? `&callbackUrl=${encodeURIComponent(this.config.postLogoutRedirectUri)}`
+      : `&callbackUrl=${redirectUri}&redirectUri=${this.config.url}/web/login?${baseParams}`;
 
     const urls = {
       signup: `${this.config.url}/web/register?${urlParams}`,
       signin: `${this.config.url}/web/login?${urlParams}`,
-      logout: `${this.config.url}/web/logout?${baseParams}&callbackUrl=${postLogoutRedirectUri}`,
+      logout: `${this.config.url}/web/logout?${baseParams}${postLogoutRedirectUri}`,
       renew: `${this.config.url}/web/token/renew?${baseParams}&redirectUri=${redirectUri}`,
       default: 'default',
     };

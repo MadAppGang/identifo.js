@@ -1,8 +1,6 @@
 const path = require("path");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
-// TODO: replace package name nikita-ks with @maddappgang
-
 module.exports = {
   target: "web",
   entry: './src/index.ts',

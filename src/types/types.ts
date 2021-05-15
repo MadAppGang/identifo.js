@@ -1,10 +1,16 @@
 import { JWSHeaderParameters } from 'jose/webcrypto/types';
 
+export type TokenType = 'access' | 'refresh';
+
 export interface TokenManager {
   isAccessible: boolean
-  saveToken: (token: string) => boolean
-  getToken: () => string
-  deleteToken: () => void
+  preffix: string
+  storageType: string
+  access: string
+  refresh: string
+  saveToken: (token: string, tokenType: TokenType) => boolean
+  getToken: (tokenType: TokenType) => string
+  deleteToken: (tokenType: TokenType) => void
 }
 
 export type IdentifoConfig<S> = {
