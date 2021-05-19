@@ -27,7 +27,7 @@ class TokenService {
     if (!token) throw new Error(INVALID_TOKEN_ERROR);
     const jwtPayload = this.parseJWT(token);
     const isJwtExpired = this.isJWTExpired(jwtPayload);
-    if (jwtPayload.aud === audience && (!issuer || jwtPayload.iss === issuer) && !isJwtExpired) {
+    if (jwtPayload.aud?.includes(audience) && (!issuer || jwtPayload.iss === issuer) && !isJwtExpired) {
       return Promise.resolve(true);
     }
     throw new Error(INVALID_TOKEN_ERROR);
