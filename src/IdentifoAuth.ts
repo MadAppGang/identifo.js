@@ -92,6 +92,7 @@ class IdentifoAuth {
     } catch (err) {
       return Promise.reject();
     } finally {
+      // TODO: Nikita K cahnge correct window key
       window.location.hash = '';
     }
   }

@@ -19,7 +19,7 @@ export const UrlBuilder: UrlBuilderType = {
     // if postLogoutRedirectUri is empty, login url will be instead
     const postLogoutRedirectUri = this.config.postLogoutRedirectUri
       ? `&callbackUrl=${encodeURIComponent(this.config.postLogoutRedirectUri)}`
-      : `&callbackUrl=${redirectUri}&redirectUri=${this.config.url}/web/login?${baseParams}`;
+      : `&callbackUrl=${redirectUri}&redirectUri=${this.config.url}/web/login?${encodeURIComponent(baseParams)}`;
 
     const urls = {
       signup: `${this.config.url}/web/register?${urlParams}`,
