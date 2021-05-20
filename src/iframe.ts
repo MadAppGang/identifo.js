@@ -1,12 +1,12 @@
 const Iframe = {
-  create():HTMLIFrameElement {
+  create(): HTMLIFrameElement {
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
     return iframe;
   },
 
-  remove(iframe:HTMLIFrameElement):void {
+  remove(iframe: HTMLIFrameElement): void {
     setTimeout(() => {
       if (document.body.contains(iframe)) {
         document.body.removeChild(iframe);
@@ -14,9 +14,9 @@ const Iframe = {
     }, 0);
   },
 
-  captureMessage(iframe:HTMLIFrameElement, src:string):Promise<string> {
+  captureMessage(iframe: HTMLIFrameElement, src: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const handleMessage = (event:MessageEvent<{error:string, accessToken:string}>) => {
+      const handleMessage = (event: MessageEvent<{ error: string; accessToken: string }>) => {
         if (event.data.error) reject(event.data.error);
 
         resolve(event.data.accessToken);
