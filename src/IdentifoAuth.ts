@@ -57,7 +57,7 @@ class IdentifoAuth {
         } else {
           this.resetAuthValues();
         }
-      }, payload.exp - (new Date().getTime() / 1000) - 60000);
+      }, (payload.exp - (new Date().getTime() / 1000) - 60000) * 1000);
     }
   }
 
