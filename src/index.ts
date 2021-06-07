@@ -3,4 +3,4 @@ import { LocalStorageManager, SessionStorageManager, CookieStorageManager } from
 
 export { LocalStorageManager, SessionStorageManager, CookieStorageManager };
 export * from './api/model';
-export default IdentifoAuth;
+export { IdentifoAuth };

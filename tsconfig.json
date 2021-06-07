@@ -2,10 +2,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "module": "ES6",
-    "target": "ES5",
-    "lib": [
-      "ESNext"
-    ],
+    "target": "esnext",
+    "lib": ["ESNext"],
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
@@ -15,10 +13,5 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "include": [
-    "src",
-    "**/*.tsx",
-    "**/*.ts",
-    "**/*.js"
-  ],
+  "include": ["src/*", "**/*.tsx", "**/*.ts", "**/*.js"]
 }

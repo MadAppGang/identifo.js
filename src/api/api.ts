@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import TokenService from '../tokenService';
 import { IdentifoConfig } from '../types/types';
 import {
   AppSettingsResponse,
@@ -21,7 +22,7 @@ export class Api {
     throw new ApiError(e.response?.data.error);
   };
 
-  constructor(config: IdentifoConfig) {
+  constructor(private config: IdentifoConfig, private tokenService: TokenService) {
     this.authInstance = axios.create({
       baseURL: `${config.url}`,
       headers: {
@@ -30,33 +31,43 @@ export class Api {
     });
   }
 
-  async getUser(token: string): Promise<User> {
+  async getUser(): Promise<User> {
+    if (!this.tokenService.getToken()?.token) {
+      throw new Error('No token in token service.');
+    }
     return this.authInstance
       .get<User>('/me', {
         headers: {
-          [AUTHORIZATION_HEADER_KEY]: `Bearer ${token}`,
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken()?.token}`,
         },
       })
       .then((r) => r.data)
       .catch(this.catchHandler);
   }
 
-  async renewToken(token: string): Promise<LoginResponse> {
+  async renewToken(): Promise<LoginResponse> {
+    if (!this.tokenService.getToken('refresh')?.token) {
+      throw new Error('No token in token service.');
+    }
     return this.authInstance
       .get<LoginResponse>('/auth/renew', {
         headers: {
-          [AUTHORIZATION_HEADER_KEY]: `Bearer ${token}`,
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('refresh')?.token}`,
         },
       })
       .then((r) => r.data)
+      .then((r) => this.storeToken(r))
       .catch(this.catchHandler);
   }
 
-  async updateUser(user: UpdateUser, token: string): Promise<User> {
+  async updateUser(user: UpdateUser): Promise<User> {
+    if (!this.tokenService.getToken()?.token) {
+      throw new Error('No token in token service.');
+    }
     return this.authInstance
       .put<User>('/me', user, {
         headers: {
-          [AUTHORIZATION_HEADER_KEY]: `Bearer ${token}`,
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('refresh')?.token}`,
         },
       })
       .then((r) => r.data)
@@ -74,6 +85,7 @@ export class Api {
     return this.authInstance
       .post<LoginResponse>('/auth/login', data)
       .then((r) => r.data)
+      .then((r) => this.storeToken(r))
       .catch(this.catchHandler);
   }
 
@@ -88,6 +100,7 @@ export class Api {
     return this.authInstance
       .post<LoginResponse>('/auth/register', data)
       .then((r) => r.data)
+      .then((r) => this.storeToken(r))
       .catch(this.catchHandler);
   }
 
@@ -102,7 +115,10 @@ export class Api {
       .catch(this.catchHandler);
   }
 
-  async resetPassword(password: string, token: string): Promise<SuccessResponse> {
+  async resetPassword(password: string): Promise<SuccessResponse> {
+    if (!this.tokenService.getToken()?.token) {
+      throw new Error('No token in token service.');
+    }
     const data = {
       password,
     };
@@ -110,7 +126,7 @@ export class Api {
     return this.authInstance
       .post<SuccessResponse>('/auth/reset_password', data, {
         headers: {
-          [AUTHORIZATION_HEADER_KEY]: `Bearer ${token}`,
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken()?.token}`,
         },
       })
       .then((r) => r.data)
@@ -124,21 +140,42 @@ export class Api {
       .catch(this.catchHandler);
   }
 
-  async enableTFA(token: string): Promise<EnableTFAResponse> {
+  async enableTFA(): Promise<EnableTFAResponse> {
+    if (!this.tokenService.getToken()?.token) {
+      throw new Error('No token in token service.');
+    }
     return this.authInstance
-      .put<EnableTFAResponse>('/auth/tfa/enable', {}, { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${token}` } })
+      .put<EnableTFAResponse>(
+        '/auth/tfa/enable',
+        {},
+        { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` } },
+      )
       .then((r) => r.data)
       .catch(this.catchHandler);
   }
 
-  async verifyTFA(code: string, scopes: string[], token: string): Promise<LoginResponse> {
+  async verifyTFA(code: string, scopes: string[]): Promise<LoginResponse> {
+    if (!this.tokenService.getToken()?.token) {
+      throw new Error('No token in token service.');
+    }
     return this.authInstance
       .post<LoginResponse>(
         '/auth/tfa/login',
         { tfa_code: code, scopes },
-        { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${token}` } },
+        { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` } },
       )
       .then((r) => r.data)
+      .then((r) => this.storeToken(r))
       .catch(this.catchHandler);
+  }
+
+  storeToken(response: LoginResponse): LoginResponse {
+    if (response.access_token) {
+      this.tokenService.saveToken(response.access_token, 'access');
+    }
+    if (response.refresh_token) {
+      this.tokenService.saveToken(response.refresh_token, 'refresh');
+    }
+    return response;
   }
 }

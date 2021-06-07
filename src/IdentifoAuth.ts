@@ -8,7 +8,7 @@ import { UrlBuilder } from './UrlBuilder';
 class IdentifoAuth {
   public api: Api;
 
-  private config: IdentifoConfig;
+  public config: IdentifoConfig;
 
   private urlBuilder: UrlBuilderInit;
 
@@ -23,10 +23,10 @@ class IdentifoAuth {
   isAuth = false;
 
   constructor(config: IdentifoConfig) {
-    this.api = new Api(config);
     this.config = { ...config, autoRenew: config.autoRenew ?? true };
     this.tokenService = new TokenService(config.tokenManager);
     this.urlBuilder = new UrlBuilder(this.config);
+    this.api = new Api(config, this.tokenService);
   }
 
   init(): void {
@@ -79,7 +79,7 @@ class IdentifoAuth {
   }
 
   logout(): void {
-    this.tokenService.removeToken();
+    this.tokenService.removeToken('access');
     window.location.href = this.urlBuilder.createLogoutUrl();
   }
 
@@ -136,7 +136,7 @@ class IdentifoAuth {
 
   private async renewSessionWithToken(): Promise<string> {
     try {
-      const r = await this.api.renewToken(this.refreshToken || '').then((l) => l.access_token || '');
+      const r = await this.api.renewToken().then((l) => l.access_token || '');
       return r;
     } catch (err) {
       return Promise.resolve('');
