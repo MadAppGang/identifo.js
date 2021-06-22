@@ -1,6 +1,6 @@
 import { INVALID_TOKEN_ERROR } from './constants';
 import { LocalStorageManager } from './store-manager';
-import { ClientToken, JWTPayload, TokenManager } from './types/types';
+import { ClientToken, JWTPayload, TokenManager, TokenType } from './types/types';
 
 class TokenService {
   private tokenManager: TokenManager;
@@ -35,11 +35,14 @@ class TokenService {
 
   parseJWT(token: string): JWTPayload {
     const base64Url = token.split('.')[1];
-    if (!base64Url) return { aud: '', iss: '', exp: 10 };
+    if (!base64Url) return { aud: [], iss: '', exp: 10 };
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('')
-      .map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`)
-      .join(''));
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join(''),
+    );
     return JSON.parse(jsonPayload) as JWTPayload;
   }
 
@@ -58,16 +61,16 @@ class TokenService {
     return this.validateToken(token, audience, issuer);
   }
 
-  saveToken(token: string): boolean {
-    return this.tokenManager.saveToken(token, 'access');
+  saveToken(token: string, type: TokenType = 'access'): boolean {
+    return this.tokenManager.saveToken(token, type);
   }
 
-  removeToken(): void {
-    this.tokenManager.deleteToken('access');
+  removeToken(type: TokenType = 'access'): void {
+    this.tokenManager.deleteToken(type);
   }
 
-  getToken(): ClientToken | null {
-    const token = this.tokenManager.getToken('access');
+  getToken(type: TokenType = 'access'): ClientToken | null {
+    const token = this.tokenManager.getToken(type);
     if (!token) return null;
     const jwtPayload = this.parseJWT(token);
     return { token, payload: jwtPayload };

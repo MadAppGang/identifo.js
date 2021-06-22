@@ -1,4 +1,4 @@
-import { api } from './api/api';
+import { Api } from './api/api';
 import { jwtRegex, REFRESH_TOKEN_QUERY_KEY, TOKEN_QUERY_KEY } from './constants';
 import Iframe from './iframe';
 import TokenService from './tokenService';
@@ -6,7 +6,9 @@ import { ClientToken, IdentifoConfig, UrlBuilderInit } from './types/types';
 import { UrlBuilder } from './UrlBuilder';
 
 class IdentifoAuth {
-  private config: IdentifoConfig<string[]>;
+  public api: Api;
+
+  public config: IdentifoConfig;
 
   private urlBuilder: UrlBuilderInit;
 
@@ -20,10 +22,11 @@ class IdentifoAuth {
 
   isAuth = false;
 
-  constructor(config: IdentifoConfig<string[]>) {
+  constructor(config: IdentifoConfig) {
     this.config = { ...config, autoRenew: config.autoRenew ?? true };
     this.tokenService = new TokenService(config.tokenManager);
-    this.urlBuilder = UrlBuilder.init(this.config);
+    this.urlBuilder = new UrlBuilder(this.config);
+    this.api = new Api(config, this.tokenService);
   }
 
   init(): void {
@@ -57,7 +60,7 @@ class IdentifoAuth {
         } else {
           this.resetAuthValues();
         }
-      }, (payload.exp - (new Date().getTime() / 1000) - 60000) * 1000);
+      }, (payload.exp - new Date().getTime() / 1000 - 60000) * 1000);
     }
   }
 
@@ -76,7 +79,7 @@ class IdentifoAuth {
   }
 
   logout(): void {
-    this.tokenService.removeToken();
+    this.tokenService.removeToken('access');
     window.location.href = this.urlBuilder.createLogoutUrl();
   }
 
@@ -88,16 +91,16 @@ class IdentifoAuth {
     try {
       await this.tokenService.handleVerification(access, this.config.appId, this.config.issuer);
       this.handleToken(access);
-      return Promise.resolve(true);
+      return await Promise.resolve(true);
     } catch (err) {
-      return Promise.reject();
+      return await Promise.reject();
     } finally {
       // TODO: Nikita K cahnge correct window key
       window.location.hash = '';
     }
   }
 
-  private getTokenFromUrl(): { access: string, refresh: string } {
+  private getTokenFromUrl(): { access: string; refresh: string } {
     const urlParams = new URLSearchParams(window.location.search);
     const tokens = { access: '', refresh: '' };
     const accessToken = urlParams.get(TOKEN_QUERY_KEY);
@@ -125,7 +128,7 @@ class IdentifoAuth {
     try {
       const token = await this.renewSessionWithIframe();
       this.handleToken(token);
-      return Promise.resolve(token);
+      return await Promise.resolve(token);
     } catch (err) {
       return Promise.reject();
     }
@@ -133,7 +136,7 @@ class IdentifoAuth {
 
   private async renewSessionWithToken(): Promise<string> {
     try {
-      const r = await api.renewToken(this.urlBuilder.createRenewSessionUrl());
+      const r = await this.api.renewToken().then((l) => l.access_token || '');
       return r;
     } catch (err) {
       return Promise.resolve('');
