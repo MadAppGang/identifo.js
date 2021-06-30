@@ -3,6 +3,7 @@ import axios from 'axios';
 var APIErrorCodes;
 (function(APIErrorCodes2) {
   APIErrorCodes2["PleaseEnableTFA"] = "error.api.request.2fa.please_enable";
+  APIErrorCodes2["NetworkError"] = "error.network";
 })(APIErrorCodes || (APIErrorCodes = {}));
 var TFAType;
 (function(TFAType2) {
@@ -27,6 +28,14 @@ class Api {
     this.tokenService = tokenService;
     this.authInstance = axios.create();
     this.catchHandler = (e) => {
+      if (e.message === "Network Error") {
+        throw new ApiError({
+          id: APIErrorCodes.NetworkError,
+          status: 0,
+          message: e.message,
+          detailed_message: "Please check Identifo URL and add REDIRECT URLS in Identifo app settings."
+        });
+      }
       throw new ApiError(e.response?.data.error);
     };
     this.authInstance = axios.create({

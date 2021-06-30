@@ -10,6 +10,7 @@ import {
   User,
   ApiRequestError,
   ApiError,
+  APIErrorCodes,
 } from './model';
 
 const APP_ID_HEADER_KEY = 'X-Identifo-Clientid';
@@ -19,6 +20,14 @@ export class Api {
   authInstance: AxiosInstance = axios.create();
 
   catchHandler = (e: AxiosError<ApiRequestError>): never => {
+    if (e.message === 'Network Error') {
+      throw new ApiError({
+        id: APIErrorCodes.NetworkError,
+        status: 0,
+        message: e.message,
+        detailed_message: 'Please check Identifo URL and add REDIRECT URLS in Identifo app settings.',
+      });
+    }
     throw new ApiError(e.response?.data.error);
   };
 
