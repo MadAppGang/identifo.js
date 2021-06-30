@@ -76,7 +76,8 @@ declare class TokenService {
 }
 
 declare enum APIErrorCodes {
-    PleaseEnableTFA = "error.api.request.2fa.please_enable"
+    PleaseEnableTFA = "error.api.request.2fa.please_enable",
+    NetworkError = "error.network"
 }
 declare enum TFAType {
     TFATypeApp = "app",
