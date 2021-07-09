@@ -111,9 +111,9 @@ export class Api {
       .catch(this.catchHandler);
   }
 
-  async requestResetPassword(username: string): Promise<SuccessResponse> {
+  async requestResetPassword(email: string): Promise<SuccessResponse> {
     const data = {
-      username,
+      email,
     };
 
     return this.authInstance
