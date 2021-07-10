@@ -2,12 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var axios = require('axios');
-
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-var axios__default = /*#__PURE__*/_interopDefaultLegacy(axios);
-
 exports.APIErrorCodes = void 0;
 (function(APIErrorCodes2) {
   APIErrorCodes2["PleaseEnableTFA"] = "error.api.request.2fa.please_enable";
@@ -34,54 +28,80 @@ class Api {
   constructor(config, tokenService) {
     this.config = config;
     this.tokenService = tokenService;
-    this.authInstance = axios__default['default'].create();
-    this.catchHandler = (e) => {
-      if (e.message === "Network Error") {
+    this.defaultHeaders = {
+      [APP_ID_HEADER_KEY]: "",
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    };
+    this.catchNetworkErrorHandler = (e) => {
+      if (e.message === "Network Error" || e.message === "Failed to fetch" || e.message === "Preflight response is not successful" || e.message.indexOf("is not allowed by Access-Control-Allow-Origin") > -1) {
+        console.error(e.message);
         throw new ApiError({
           id: exports.APIErrorCodes.NetworkError,
           status: 0,
-          message: e.message,
-          detailed_message: "Please check Identifo URL and add REDIRECT URLS in Identifo app settings."
+          message: "Configuration error",
+          detailed_message: `Please check Identifo URL and add "${window.location.protocol}//${window.location.host}" to "REDIRECT URLS" in Identifo app settings.`
         });
       }
-      throw new ApiError(e.response?.data.error);
+      throw e;
     };
-    this.authInstance = axios__default['default'].create({
-      baseURL: `${config.url}`,
-      headers: {
-        [APP_ID_HEADER_KEY]: config.appId
+    this.checkStatusCodeAndGetJSON = async (r) => {
+      if (!r.ok) {
+        const error = await r.json();
+        throw new ApiError(error?.error);
       }
-    });
+      return r.json();
+    };
+    this.baseUrl = config.url.replace(/\/$/, "");
+    this.defaultHeaders[APP_ID_HEADER_KEY] = config.appId;
+    this.appId = config.appId;
+  }
+  get(path, options) {
+    return this.send(path, { method: "GET", ...options });
+  }
+  put(path, data, options) {
+    return this.send(path, { method: "PUT", body: JSON.stringify(data), ...options });
+  }
+  post(path, data, options) {
+    return this.send(path, { method: "POST", body: JSON.stringify(data), ...options });
+  }
+  send(path, options) {
+    const init = { ...options };
+    init.headers = {
+      ...init.headers,
+      ...this.defaultHeaders
+    };
+    return fetch(`${this.baseUrl}${path}`, init).catch(this.catchNetworkErrorHandler).then(this.checkStatusCodeAndGetJSON).then((value) => value);
   }
   async getUser() {
     if (!this.tokenService.getToken()?.token) {
       throw new Error("No token in token service.");
     }
-    return this.authInstance.get("/me", {
+    return this.get("/me", {
       headers: {
         [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken()?.token}`
       }
-    }).then((r) => r.data).catch(this.catchHandler);
+    });
   }
   async renewToken() {
     if (!this.tokenService.getToken("refresh")?.token) {
       throw new Error("No token in token service.");
     }
-    return this.authInstance.get("/auth/renew", {
+    return this.get("/auth/renew", {
       headers: {
         [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken("refresh")?.token}`
       }
-    }).then((r) => r.data).then((r) => this.storeToken(r)).catch(this.catchHandler);
+    }).then((r) => this.storeToken(r));
   }
   async updateUser(user) {
     if (!this.tokenService.getToken()?.token) {
       throw new Error("No token in token service.");
     }
-    return this.authInstance.put("/me", user, {
+    return this.put("/me", user, {
       headers: {
-        [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken("refresh")?.token}`
+        [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken("access")?.token}`
       }
-    }).then((r) => r.data).catch(this.catchHandler);
+    });
   }
   async login(username, password, deviceToken, scopes) {
     const data = {
@@ -90,22 +110,20 @@ class Api {
       device_token: deviceToken,
       scopes
     };
-    return this.authInstance.post("/auth/login", data).then((r) => r.data).then((r) => this.storeToken(r)).catch(this.catchHandler);
+    return this.post("/auth/login", data).then((r) => this.storeToken(r));
   }
-  async register(username, password, email, phone) {
+  async register(username, password) {
     const data = {
       username,
-      password,
-      email,
-      phone
+      password
     };
-    return this.authInstance.post("/auth/register", data).then((r) => r.data).then((r) => this.storeToken(r)).catch(this.catchHandler);
+    return this.post("/auth/register", data).then((r) => this.storeToken(r));
   }
   async requestResetPassword(email) {
     const data = {
       email
     };
-    return this.authInstance.post("/auth/request_reset_password", data).then((r) => r.data).catch(this.catchHandler);
+    return this.post("/auth/request_reset_password", data);
   }
   async resetPassword(password) {
     if (!this.tokenService.getToken()?.token) {
@@ -114,26 +132,28 @@ class Api {
     const data = {
       password
     };
-    return this.authInstance.post("/auth/reset_password", data, {
+    return this.post("/auth/reset_password", data, {
       headers: {
         [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken()?.token}`
       }
-    }).then((r) => r.data).catch(this.catchHandler);
+    });
   }
   async getAppSettings() {
-    return this.authInstance.get("/auth/app_settings").then((r) => r.data).catch(this.catchHandler);
+    return this.get("/auth/app_settings");
   }
   async enableTFA() {
     if (!this.tokenService.getToken()?.token) {
       throw new Error("No token in token service.");
     }
-    return this.authInstance.put("/auth/tfa/enable", {}, { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` } }).then((r) => r.data).catch(this.catchHandler);
+    return this.put("/auth/tfa/enable", {}, {
+      headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` }
+    });
   }
   async verifyTFA(code, scopes) {
     if (!this.tokenService.getToken()?.token) {
       throw new Error("No token in token service.");
     }
-    return this.authInstance.post("/auth/tfa/login", { tfa_code: code, scopes }, { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` } }).then((r) => r.data).then((r) => this.storeToken(r)).catch(this.catchHandler);
+    return this.post("/auth/tfa/login", { tfa_code: code, scopes }, { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` } }).then((r) => this.storeToken(r));
   }
   storeToken(response) {
     if (response.access_token) {
