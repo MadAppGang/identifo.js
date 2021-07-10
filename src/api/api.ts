@@ -76,7 +76,7 @@ export class Api {
     return this.authInstance
       .put<User>('/me', user, {
         headers: {
-          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('refresh')?.token}`,
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('access')?.token}`,
         },
       })
       .then((r) => r.data)
@@ -98,12 +98,10 @@ export class Api {
       .catch(this.catchHandler);
   }
 
-  async register(username: string, password: string, email: string, phone: string): Promise<LoginResponse> {
+  async register(username: string, password: string): Promise<LoginResponse> {
     const data = {
       username,
       password,
-      email,
-      phone,
     };
 
     return this.authInstance

@@ -44,6 +44,7 @@ export interface LoginResponse {
     num_of_logins: number;
     username: string;
     tfa_info: { hotp_expired_at: string };
+    phone?: string
   };
 }
 export interface EnableTFAResponse {
