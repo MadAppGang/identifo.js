@@ -8,11 +8,11 @@ import { UrlBuilder } from './UrlBuilder';
 class IdentifoAuth {
   public api: Api;
 
+  public tokenService: TokenService;
+
   public config: IdentifoConfig;
 
-  private urlBuilder: UrlBuilderInit;
-
-  private tokenService: TokenService;
+  public urlBuilder: UrlBuilderInit;
 
   private token: ClientToken | null = null;
 
