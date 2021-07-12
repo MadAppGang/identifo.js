@@ -83,7 +83,7 @@ class Api {
     if (!this.tokenService.getToken("refresh")?.token) {
       throw new Error("No token in token service.");
     }
-    return this.get("/auth/renew", {
+    return this.post("/auth/token", {}, {
       headers: {
         [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken("refresh")?.token}`
       }

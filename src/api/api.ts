@@ -102,11 +102,15 @@ export class Api {
     if (!this.tokenService.getToken('refresh')?.token) {
       throw new Error('No token in token service.');
     }
-    return this.get<LoginResponse>('/auth/renew', {
-      headers: {
-        [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('refresh')?.token}`,
+    return this.post<LoginResponse>(
+      '/auth/token',
+      {},
+      {
+        headers: {
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('refresh')?.token}`,
+        },
       },
-    }).then((r) => this.storeToken(r));
+    ).then((r) => this.storeToken(r));
   }
 
   async updateUser(user: UpdateUser): Promise<User> {
