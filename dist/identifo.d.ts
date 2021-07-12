@@ -1,4 +1,3 @@
-import { AxiosInstance, AxiosError } from 'axios';
 import { JWSHeaderParameters } from 'jose/webcrypto/types';
 
 declare type TokenType = 'access' | 'refresh';
@@ -113,6 +112,7 @@ interface LoginResponse {
         tfa_info: {
             hotp_expired_at: string;
         };
+        phone?: string;
     };
 }
 interface EnableTFAResponse {
@@ -156,14 +156,25 @@ interface SuccessResponse {
 declare class Api {
     private config;
     private tokenService;
-    authInstance: AxiosInstance;
-    catchHandler: (e: AxiosError<ApiRequestError>) => never;
+    baseUrl: string;
+    appId: string;
+    defaultHeaders: {
+        "X-Identifo-Clientid": string;
+        Accept: string;
+        'Content-Type': string;
+    };
+    catchNetworkErrorHandler: (e: TypeError) => never;
+    checkStatusCodeAndGetJSON: (r: Response) => Promise<any>;
     constructor(config: IdentifoConfig, tokenService: TokenService);
+    get<T>(path: string, options?: RequestInit): Promise<T>;
+    put<T>(path: string, data: unknown, options?: RequestInit): Promise<T>;
+    post<T>(path: string, data: unknown, options?: RequestInit): Promise<T>;
+    send<T>(path: string, options?: RequestInit): Promise<T>;
     getUser(): Promise<User>;
     renewToken(): Promise<LoginResponse>;
     updateUser(user: UpdateUser): Promise<User>;
     login(username: string, password: string, deviceToken: string, scopes: string[]): Promise<LoginResponse>;
-    register(username: string, password: string, email: string, phone: string): Promise<LoginResponse>;
+    register(username: string, password: string): Promise<LoginResponse>;
     requestResetPassword(email: string): Promise<SuccessResponse>;
     resetPassword(password: string): Promise<SuccessResponse>;
     getAppSettings(): Promise<AppSettingsResponse>;
