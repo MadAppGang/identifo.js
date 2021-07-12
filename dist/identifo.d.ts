@@ -21,6 +21,12 @@ declare type IdentifoConfig = {
     tokenManager?: TokenManager;
     autoRenew?: boolean;
 };
+declare type UrlBuilderInit = {
+    createSignupUrl: () => string;
+    createSigninUrl: () => string;
+    createLogoutUrl: () => string;
+    createRenewSessionUrl: () => string;
+};
 interface JWTPayload {
     /**
      * JWT Issuer - [RFC7519#section-4.1.1](https://tools.ietf.org/html/rfc7519#section-4.1.1).
@@ -185,9 +191,9 @@ declare class Api {
 
 declare class IdentifoAuth {
     api: Api;
+    tokenService: TokenService;
     config: IdentifoConfig;
-    private urlBuilder;
-    private tokenService;
+    urlBuilder: UrlBuilderInit;
     private token;
     private refreshToken;
     private renewSessionId;
