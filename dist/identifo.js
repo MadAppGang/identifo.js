@@ -557,8 +557,9 @@ class IdentifoAuth {
     return tokens;
   }
   getToken() {
-    if (this.token) {
-      return this.token;
+    const token = this.tokenService.getToken();
+    if (token) {
+      return token;
     }
     return { token: "", payload: {} };
   }
