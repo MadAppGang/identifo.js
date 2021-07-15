@@ -186,6 +186,7 @@ declare class Api {
     getAppSettings(): Promise<AppSettingsResponse>;
     enableTFA(): Promise<EnableTFAResponse>;
     verifyTFA(code: string, scopes: string[]): Promise<LoginResponse>;
+    logout(): Promise<SuccessResponse>;
     storeToken(response: LoginResponse): LoginResponse;
 }
 

@@ -195,6 +195,21 @@ export class Api {
     ).then((r) => this.storeToken(r));
   }
 
+  async logout(): Promise<SuccessResponse> {
+    if (!this.tokenService.getToken()?.token) {
+      throw new Error('No token in token service.');
+    }
+    return this.post<SuccessResponse>(
+      '/auth/logout',
+      {},
+      {
+        headers: {
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('refresh')?.token}`,
+        },
+      },
+    );
+  }
+
   storeToken(response: LoginResponse): LoginResponse {
     if (response.access_token) {
       this.tokenService.saveToken(response.access_token, 'access');

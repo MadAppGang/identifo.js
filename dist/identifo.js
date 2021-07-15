@@ -214,6 +214,19 @@ class Api {
       return this.post("/auth/tfa/login", { tfa_code: code, scopes }, { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${(_b = this.tokenService.getToken()) == null ? void 0 : _b.token}` } }).then((r) => this.storeToken(r));
     });
   }
+  logout() {
+    return __async$2(this, null, function* () {
+      var _a, _b;
+      if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
+        throw new Error("No token in token service.");
+      }
+      return this.post("/auth/logout", {}, {
+        headers: {
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${(_b = this.tokenService.getToken("refresh")) == null ? void 0 : _b.token}`
+        }
+      });
+    });
+  }
   storeToken(response) {
     if (response.access_token) {
       this.tokenService.saveToken(response.access_token, "access");
