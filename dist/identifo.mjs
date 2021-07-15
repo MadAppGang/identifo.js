@@ -216,7 +216,7 @@ class Api {
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
       }
-      return this.post("/auth/logout", {
+      return this.post("/me/logout", {
         refresh_token: (_b = this.tokenService.getToken("refresh")) == null ? void 0 : _b.token
       }, {
         headers: {

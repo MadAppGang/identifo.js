@@ -200,7 +200,7 @@ export class Api {
       throw new Error('No token in token service.');
     }
     return this.post<SuccessResponse>(
-      '/auth/logout',
+      '/me/logout',
       {
         refresh_token: this.tokenService.getToken('refresh')?.token,
       },
