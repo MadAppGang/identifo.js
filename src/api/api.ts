@@ -201,10 +201,12 @@ export class Api {
     }
     return this.post<SuccessResponse>(
       '/auth/logout',
-      {},
+      {
+        refresh_token: this.tokenService.getToken('refresh')?.token,
+      },
       {
         headers: {
-          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('refresh')?.token}`,
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken()?.token}`,
         },
       },
     );

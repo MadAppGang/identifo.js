@@ -216,13 +216,15 @@ class Api {
   }
   logout() {
     return __async$2(this, null, function* () {
-      var _a, _b;
+      var _a, _b, _c;
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
       }
-      return this.post("/auth/logout", {}, {
+      return this.post("/auth/logout", {
+        refresh_token: (_b = this.tokenService.getToken("refresh")) == null ? void 0 : _b.token
+      }, {
         headers: {
-          [AUTHORIZATION_HEADER_KEY]: `Bearer ${(_b = this.tokenService.getToken("refresh")) == null ? void 0 : _b.token}`
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${(_c = this.tokenService.getToken()) == null ? void 0 : _c.token}`
         }
       });
     });
