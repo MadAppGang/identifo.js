@@ -145,10 +145,10 @@ class Api {
       });
     });
   }
-  login(username, password, deviceToken, scopes) {
+  login(email, password, deviceToken, scopes) {
     return __async$2(this, null, function* () {
       const data = {
-        username,
+        email,
         password,
         device_token: deviceToken,
         scopes
@@ -156,10 +156,10 @@ class Api {
       return this.post("/auth/login", data).then((r) => this.storeToken(r));
     });
   }
-  register(username, password) {
+  register(email, password) {
     return __async$2(this, null, function* () {
       const data = {
-        username,
+        email,
         password
       };
       return this.post("/auth/register", data).then((r) => this.storeToken(r));
