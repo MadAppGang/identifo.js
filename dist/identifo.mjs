@@ -152,11 +152,12 @@ class Api {
       return this.post("/auth/login", data).then((r) => this.storeToken(r));
     });
   }
-  register(email, password) {
+  register(email, password, scopes) {
     return __async$2(this, null, function* () {
       const data = {
         email,
-        password
+        password,
+        scopes
       };
       return this.post("/auth/register", data).then((r) => this.storeToken(r));
     });

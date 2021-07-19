@@ -180,7 +180,7 @@ declare class Api {
     renewToken(): Promise<LoginResponse>;
     updateUser(user: UpdateUser): Promise<User>;
     login(email: string, password: string, deviceToken: string, scopes: string[]): Promise<LoginResponse>;
-    register(email: string, password: string): Promise<LoginResponse>;
+    register(email: string, password: string, scopes: string[]): Promise<LoginResponse>;
     requestResetPassword(email: string): Promise<SuccessResponse>;
     resetPassword(password: string): Promise<SuccessResponse>;
     getAppSettings(): Promise<AppSettingsResponse>;

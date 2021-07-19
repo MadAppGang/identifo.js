@@ -135,10 +135,11 @@ export class Api {
     return this.post<LoginResponse>('/auth/login', data).then((r) => this.storeToken(r));
   }
 
-  async register(email: string, password: string): Promise<LoginResponse> {
+  async register(email: string, password: string, scopes: string[]): Promise<LoginResponse> {
     const data = {
       email,
       password,
+      scopes,
     };
 
     return this.post<LoginResponse>('/auth/register', data).then((r) => this.storeToken(r));
