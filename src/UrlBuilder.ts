@@ -1,17 +1,17 @@
 import { IdentifoConfig, UrlFlows } from './types/types';
 
 export class UrlBuilder {
-  constructor(private config: IdentifoConfig) {}
+  constructor(private config: IdentifoConfig) { }
 
   getUrl(flow: UrlFlows): string {
-    const scopes = JSON.stringify(this.config.scopes ?? []);
+    const scopes = this.config.scopes?.join() || '';
     const redirectUri = encodeURIComponent(this.config.redirectUri ?? window.location.href);
     const baseParams = `appId=${this.config.appId}&scopes=${scopes}`;
     const urlParams = `${baseParams}&callbackUrl=${redirectUri}`;
     // if postLogoutRedirectUri is empty, login url will be instead
-    const postLogoutRedirectUri = this.config.postLogoutRedirectUri
-      ? `&callbackUrl=${encodeURIComponent(this.config.postLogoutRedirectUri)}`
-      : `&callbackUrl=${redirectUri}&redirectUri=${this.config.url}/web/login?${encodeURIComponent(baseParams)}`;
+    const postLogoutRedirectUri = this.config.postLogoutRedirectUri ?
+      `&callbackUrl=${encodeURIComponent(this.config.postLogoutRedirectUri)}` :
+      `&callbackUrl=${redirectUri}&redirectUri=${this.config.url}/web/login?${encodeURIComponent(baseParams)}`;
 
     const urls = {
       signup: `${this.config.url}/web/register?${urlParams}`,

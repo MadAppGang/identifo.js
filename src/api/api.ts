@@ -104,7 +104,7 @@ export class Api {
     }
     return this.post<LoginResponse>(
       '/auth/token',
-      {},
+      { scopes: this.config.scopes },
       {
         headers: {
           [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken('refresh')?.token}`,

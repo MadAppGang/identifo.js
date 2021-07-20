@@ -125,7 +125,7 @@ class Api {
       if (!((_a = this.tokenService.getToken("refresh")) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
       }
-      return this.post("/auth/token", {}, {
+      return this.post("/auth/token", { scopes: this.config.scopes }, {
         headers: {
           [AUTHORIZATION_HEADER_KEY]: `Bearer ${(_b = this.tokenService.getToken("refresh")) == null ? void 0 : _b.token}`
         }
@@ -244,34 +244,6 @@ const jwtRegex = /^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-=]*$)/;
 const INVALID_TOKEN_ERROR = "Empty or invalid token";
 const TOKEN_QUERY_KEY = "token";
 const REFRESH_TOKEN_QUERY_KEY = "refresh_token";
-
-const Iframe = {
-  create() {
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-    return iframe;
-  },
-  remove(iframe) {
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
-    }, 0);
-  },
-  captureMessage(iframe, src) {
-    return new Promise((resolve, reject) => {
-      const handleMessage = (event) => {
-        if (event.data.error)
-          reject(event.data.error);
-        resolve(event.data.accessToken);
-        window.removeEventListener("message", handleMessage);
-      };
-      window.addEventListener("message", handleMessage, false);
-      iframe.src = src;
-    });
-  }
-};
 
 class CookieStorage {
   constructor() {
@@ -419,7 +391,7 @@ class UrlBuilder {
   }
   getUrl(flow) {
     var _a, _b;
-    const scopes = JSON.stringify((_a = this.config.scopes) != null ? _a : []);
+    const scopes = ((_a = this.config.scopes) == null ? void 0 : _a.join()) || "";
     const redirectUri = encodeURIComponent((_b = this.config.redirectUri) != null ? _b : window.location.href);
     const baseParams = `appId=${this.config.appId}&scopes=${scopes}`;
     const urlParams = `${baseParams}&callbackUrl=${redirectUri}`;
@@ -489,47 +461,31 @@ var __async = (__this, __arguments, generator) => {
 class IdentifoAuth {
   constructor(config) {
     this.token = null;
-    this.refreshToken = null;
     this.isAuth = false;
-    var _a;
+    var _a, _b;
     this.config = __spreadProps(__spreadValues({}, config), { autoRenew: (_a = config.autoRenew) != null ? _a : true });
     this.tokenService = new TokenService(config.tokenManager);
     this.urlBuilder = new UrlBuilder(this.config);
     this.api = new Api(config, this.tokenService);
+    this.handleToken(((_b = this.tokenService.getToken()) == null ? void 0 : _b.token) || "", "access");
   }
-  init() {
-    const token = this.tokenService.getToken();
+  handleToken(token, tokenType) {
     if (token) {
-      const isExpired = this.tokenService.isJWTExpired(token.payload);
-      if (isExpired) {
-        this.renewSession().then((t) => this.handleToken(t)).catch(() => this.resetAuthValues());
+      if (tokenType === "access") {
+        const payload = this.tokenService.parseJWT(token);
+        this.token = { token, payload };
+        this.isAuth = true;
+        this.tokenService.saveToken(token);
       } else {
-        this.handleToken(token.token);
+        this.tokenService.saveToken(token, "refresh");
       }
-    }
-  }
-  handleToken(token) {
-    const payload = this.tokenService.parseJWT(token);
-    this.token = { token, payload };
-    this.isAuth = true;
-    this.tokenService.saveToken(token);
-    if (this.renewSessionId) {
-      window.clearTimeout(this.renewSessionId);
-    }
-    if (payload.exp) {
-      this.renewSessionId = window.setTimeout(() => {
-        if (this.config.autoRenew) {
-          this.renewSession().then((t) => this.handleToken(t)).catch(() => this.resetAuthValues());
-        } else {
-          this.resetAuthValues();
-        }
-      }, (payload.exp - new Date().getTime() / 1e3 - 6e4) * 1e3);
     }
   }
   resetAuthValues() {
     this.token = null;
     this.isAuth = false;
     this.tokenService.removeToken();
+    this.tokenService.removeToken("refresh");
   }
   signup() {
     window.location.href = this.urlBuilder.createSignupUrl();
@@ -538,20 +494,25 @@ class IdentifoAuth {
     window.location.href = this.urlBuilder.createSigninUrl();
   }
   logout() {
-    this.tokenService.removeToken("access");
+    this.resetAuthValues();
     window.location.href = this.urlBuilder.createLogoutUrl();
   }
   handleAuthentication() {
     return __async(this, null, function* () {
-      const { access } = this.getTokenFromUrl();
+      const { access, refresh } = this.getTokenFromUrl();
       if (!access) {
+        this.resetAuthValues();
         return Promise.reject();
       }
       try {
         yield this.tokenService.handleVerification(access, this.config.appId, this.config.issuer);
-        this.handleToken(access);
+        this.handleToken(access, "access");
+        if (refresh) {
+          this.handleToken(refresh, "refresh");
+        }
         return yield Promise.resolve(true);
       } catch (err) {
+        this.resetAuthValues();
         return yield Promise.reject();
       } finally {
         window.location.hash = "";
@@ -572,18 +533,32 @@ class IdentifoAuth {
     return tokens;
   }
   getToken() {
-    const token = this.tokenService.getToken();
-    if (token) {
-      return token;
-    }
-    return { token: "", payload: {} };
+    return __async(this, null, function* () {
+      const token = this.tokenService.getToken();
+      const refreshToken = this.tokenService.getToken("refresh");
+      if (token) {
+        const isExpired = this.tokenService.isJWTExpired(token.payload);
+        if (isExpired && refreshToken) {
+          try {
+            yield this.renewSession();
+            return yield Promise.resolve(this.token);
+          } catch (err) {
+            this.resetAuthValues();
+            throw new Error("No token");
+          }
+        }
+        return Promise.resolve(token);
+      }
+      return Promise.resolve(null);
+    });
   }
   renewSession() {
     return __async(this, null, function* () {
       try {
-        const token = yield this.renewSessionWithIframe();
-        this.handleToken(token);
-        return yield Promise.resolve(token);
+        const { access, refresh } = yield this.renewSessionWithToken();
+        this.handleToken(access, "access");
+        this.handleToken(refresh, "refresh");
+        return yield Promise.resolve(access);
       } catch (err) {
         return Promise.reject();
       }
@@ -592,29 +567,10 @@ class IdentifoAuth {
   renewSessionWithToken() {
     return __async(this, null, function* () {
       try {
-        const r = yield this.api.renewToken().then((l) => l.access_token || "");
-        return r;
-      } catch (err) {
-        return Promise.resolve("");
-      }
-    });
-  }
-  renewSessionWithIframe() {
-    return __async(this, null, function* () {
-      const iframe = Iframe.create();
-      const timeout = setTimeout(() => {
-        Iframe.remove(iframe);
-        throw new Error("Timeout expired");
-      }, 3e4);
-      try {
-        const token = yield Iframe.captureMessage(iframe, this.urlBuilder.createRenewSessionUrl());
-        yield this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
-        return token;
+        const tokens = yield this.api.renewToken().then((l) => ({ access: l.access_token || "", refresh: l.refresh_token || "" }));
+        return tokens;
       } catch (err) {
         return Promise.reject(err);
-      } finally {
-        clearTimeout(timeout);
-        Iframe.remove(iframe);
       }
     });
   }

@@ -1,6 +1,8 @@
 import { INVALID_TOKEN_ERROR } from './constants';
 import { LocalStorageManager } from './store-manager';
-import { ClientToken, JWTPayload, TokenManager, TokenType } from './types/types';
+import {
+  ClientToken, JWTPayload, TokenManager, TokenType,
+} from './types/types';
 
 class TokenService {
   private tokenManager: TokenManager;
