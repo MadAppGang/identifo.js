@@ -1,6 +1,5 @@
 import { Api } from './api/api';
 import { jwtRegex, REFRESH_TOKEN_QUERY_KEY, TOKEN_QUERY_KEY } from './constants';
-import Iframe from './iframe';
 import TokenService from './tokenService';
 import { ClientToken, IdentifoConfig, UrlBuilderInit } from './types/types';
 import { UrlBuilder } from './UrlBuilder';
@@ -16,10 +15,6 @@ class IdentifoAuth {
 
   private token: ClientToken | null = null;
 
-  private refreshToken: string | null = null;
-
-  private renewSessionId: number | undefined;
-
   isAuth = false;
 
   constructor(config: IdentifoConfig) {
@@ -27,40 +22,19 @@ class IdentifoAuth {
     this.tokenService = new TokenService(config.tokenManager);
     this.urlBuilder = new UrlBuilder(this.config);
     this.api = new Api(config, this.tokenService);
+    this.handleToken(this.tokenService.getToken()?.token || '', 'access');
   }
 
-  init(): void {
-    const token = this.tokenService.getToken();
+  private handleToken(token: string, tokenType: 'access' | 'refresh') {
     if (token) {
-      const isExpired = this.tokenService.isJWTExpired(token.payload);
-      if (isExpired) {
-        this.renewSession()
-          .then((t) => this.handleToken(t))
-          .catch(() => this.resetAuthValues());
+      if (tokenType === 'access') {
+        const payload = this.tokenService.parseJWT(token);
+        this.token = { token, payload };
+        this.isAuth = true;
+        this.tokenService.saveToken(token);
       } else {
-        this.handleToken(token.token);
+        this.tokenService.saveToken(token, 'refresh');
       }
-    }
-  }
-
-  private handleToken(token: string) {
-    const payload = this.tokenService.parseJWT(token);
-    this.token = { token, payload };
-    this.isAuth = true;
-    this.tokenService.saveToken(token);
-    if (this.renewSessionId) {
-      window.clearTimeout(this.renewSessionId);
-    }
-    if (payload.exp) {
-      this.renewSessionId = window.setTimeout(() => {
-        if (this.config.autoRenew) {
-          this.renewSession()
-            .then((t) => this.handleToken(t))
-            .catch(() => this.resetAuthValues());
-        } else {
-          this.resetAuthValues();
-        }
-      }, (payload.exp - new Date().getTime() / 1000 - 60000) * 1000);
     }
   }
 
@@ -68,6 +42,7 @@ class IdentifoAuth {
     this.token = null;
     this.isAuth = false;
     this.tokenService.removeToken();
+    this.tokenService.removeToken('refresh');
   }
 
   signup(): void {
@@ -79,20 +54,25 @@ class IdentifoAuth {
   }
 
   logout(): void {
-    this.tokenService.removeToken('access');
+    this.resetAuthValues();
     window.location.href = this.urlBuilder.createLogoutUrl();
   }
 
   async handleAuthentication(): Promise<boolean> {
-    const { access } = this.getTokenFromUrl();
+    const { access, refresh } = this.getTokenFromUrl();
     if (!access) {
+      this.resetAuthValues();
       return Promise.reject();
     }
     try {
       await this.tokenService.handleVerification(access, this.config.appId, this.config.issuer);
-      this.handleToken(access);
+      this.handleToken(access, 'access');
+      if (refresh) {
+        this.handleToken(refresh, 'refresh');
+      }
       return await Promise.resolve(true);
     } catch (err) {
+      this.resetAuthValues();
       return await Promise.reject();
     } finally {
       // TODO: Nikita K cahnge correct window key
@@ -105,60 +85,52 @@ class IdentifoAuth {
     const tokens = { access: '', refresh: '' };
     const accessToken = urlParams.get(TOKEN_QUERY_KEY);
     const refreshToken = urlParams.get(REFRESH_TOKEN_QUERY_KEY);
-
     if (refreshToken && jwtRegex.test(refreshToken)) {
       tokens.refresh = refreshToken;
     }
     if (accessToken && jwtRegex.test(accessToken)) {
       tokens.access = accessToken;
     }
-
     return tokens;
   }
 
-  getToken(): ClientToken {
+  async getToken(): Promise<ClientToken | null> {
     const token = this.tokenService.getToken();
+    const refreshToken = this.tokenService.getToken('refresh');
     if (token) {
-      return token;
+      const isExpired = this.tokenService.isJWTExpired(token.payload);
+      if (isExpired && refreshToken) {
+        try {
+          await this.renewSession();
+          return await Promise.resolve(this.token);
+        } catch (err) {
+          this.resetAuthValues();
+          throw new Error('No token');
+        }
+      }
+      return Promise.resolve(token);
     }
-
-    return { token: '', payload: {} };
+    return Promise.resolve(null);
   }
 
   async renewSession(): Promise<string> {
     try {
-      const token = await this.renewSessionWithIframe();
-      this.handleToken(token);
-      return await Promise.resolve(token);
+      const { access, refresh } = await this.renewSessionWithToken();
+      this.handleToken(access, 'access');
+      this.handleToken(refresh, 'refresh');
+      return await Promise.resolve(access);
     } catch (err) {
       return Promise.reject();
     }
   }
 
-  private async renewSessionWithToken(): Promise<string> {
+  private async renewSessionWithToken(): Promise<{ access: string, refresh: string }> {
     try {
-      const r = await this.api.renewToken().then((l) => l.access_token || '');
-      return r;
-    } catch (err) {
-      return Promise.resolve('');
-    }
-  }
-
-  private async renewSessionWithIframe(): Promise<string> {
-    const iframe = Iframe.create();
-    const timeout = setTimeout(() => {
-      Iframe.remove(iframe);
-      throw new Error('Timeout expired');
-    }, 30000);
-    try {
-      const token = await Iframe.captureMessage(iframe, this.urlBuilder.createRenewSessionUrl());
-      await this.tokenService.handleVerification(token, this.config.appId, this.config.issuer);
-      return token;
+      const tokens = await this.api.renewToken()
+        .then((l) => ({ access: l.access_token || '', refresh: l.refresh_token || '' }));
+      return tokens;
     } catch (err) {
       return Promise.reject(err);
-    } finally {
-      clearTimeout(timeout);
-      Iframe.remove(iframe);
     }
   }
 }

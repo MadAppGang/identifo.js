@@ -196,11 +196,8 @@ declare class IdentifoAuth {
     config: IdentifoConfig;
     urlBuilder: UrlBuilderInit;
     private token;
-    private refreshToken;
-    private renewSessionId;
     isAuth: boolean;
     constructor(config: IdentifoConfig);
-    init(): void;
     private handleToken;
     private resetAuthValues;
     signup(): void;
@@ -208,10 +205,9 @@ declare class IdentifoAuth {
     logout(): void;
     handleAuthentication(): Promise<boolean>;
     private getTokenFromUrl;
-    getToken(): ClientToken;
+    getToken(): Promise<ClientToken | null>;
     renewSession(): Promise<string>;
     private renewSessionWithToken;
-    private renewSessionWithIframe;
 }
 
 declare class CookieStorage {
