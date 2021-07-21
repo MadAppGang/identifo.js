@@ -38,11 +38,11 @@ export interface LoginResponse {
   enabled_2fa: boolean;
   user: {
     active: boolean;
-    email: string;
+    email?: string;
     id: string;
     latest_login_time: number;
     num_of_logins: number;
-    username: string;
+    username?: string;
     tfa_info: { hotp_expired_at: string };
     phone?: string;
   };

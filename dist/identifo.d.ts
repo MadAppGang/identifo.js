@@ -110,11 +110,11 @@ interface LoginResponse {
     enabled_2fa: boolean;
     user: {
         active: boolean;
-        email: string;
+        email?: string;
         id: string;
         latest_login_time: number;
         num_of_logins: number;
-        username: string;
+        username?: string;
         tfa_info: {
             hotp_expired_at: string;
         };
@@ -179,8 +179,8 @@ declare class Api {
     getUser(): Promise<User>;
     renewToken(): Promise<LoginResponse>;
     updateUser(user: UpdateUser): Promise<User>;
-    login(username: string, password: string, deviceToken: string, scopes: string[]): Promise<LoginResponse>;
-    register(username: string, password: string): Promise<LoginResponse>;
+    login(email: string, password: string, deviceToken: string, scopes: string[]): Promise<LoginResponse>;
+    register(email: string, password: string, scopes: string[]): Promise<LoginResponse>;
     requestResetPassword(email: string): Promise<SuccessResponse>;
     resetPassword(password: string): Promise<SuccessResponse>;
     getAppSettings(): Promise<AppSettingsResponse>;

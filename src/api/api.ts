@@ -124,9 +124,9 @@ export class Api {
     });
   }
 
-  async login(username: string, password: string, deviceToken: string, scopes: string[]): Promise<LoginResponse> {
+  async login(email: string, password: string, deviceToken: string, scopes: string[]): Promise<LoginResponse> {
     const data = {
-      username,
+      email,
       password,
       device_token: deviceToken,
       scopes,
@@ -135,10 +135,11 @@ export class Api {
     return this.post<LoginResponse>('/auth/login', data).then((r) => this.storeToken(r));
   }
 
-  async register(username: string, password: string): Promise<LoginResponse> {
+  async register(email: string, password: string, scopes: string[]): Promise<LoginResponse> {
     const data = {
-      username,
+      email,
       password,
+      scopes,
     };
 
     return this.post<LoginResponse>('/auth/register', data).then((r) => this.storeToken(r));
