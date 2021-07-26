@@ -10,6 +10,7 @@ import {
   ApiRequestError,
   ApiError,
   APIErrorCodes,
+  FederatedLoginProvider,
 } from './model';
 
 const APP_ID_HEADER_KEY = 'X-Identifo-Clientid';
@@ -133,6 +134,52 @@ export class Api {
     };
 
     return this.post<LoginResponse>('/auth/login', data).then((r) => this.storeToken(r));
+  }
+  // After complete login on provider browser will be redirected to redirectUrl
+  // callbackUrl will be stored in sesson and returned after successfull login complete
+  async federatedLogin(
+    provider: FederatedLoginProvider,
+    scopes: string[],
+    redirectUrl: string,
+    callbackUrl?: string,
+    opts: { width?: number; height?: number; popUp?: boolean } = { width: 600, height: 800, popUp: false },
+  ) {
+    var dataForm = document.createElement('form');
+    dataForm.style.display = 'none';
+    if (opts.popUp) {
+      dataForm.target = 'TargetWindow'; //Make sure the window name is same as this value
+    }
+    dataForm.method = 'POST';
+    const params = new URLSearchParams();
+    params.set('appId', this.config.appId);
+    params.set('provider', provider);
+    params.set('scopes', scopes.join(','));
+    params.set('redirectUrl', redirectUrl);
+    if (callbackUrl) {
+      params.set('callbackUrl', callbackUrl);
+    }
+    dataForm.action = `${this.baseUrl}/auth/federated?${params.toString()}`;
+
+    document.body.appendChild(dataForm);
+
+    if (opts.popUp) {
+      const left = window.screenX + window.outerWidth / 2 - (opts.width || 600) / 2;
+      const top = window.screenY + window.outerHeight / 2 - (opts.height || 800) / 2;
+      var postWindow = window.open(
+        '',
+        'TargetWindow',
+        `status=0,title=0,height=${opts.height},width=${opts.width},top=${top},left=${left},scrollbars=1`,
+      );
+      if (postWindow) {
+        dataForm.submit();
+      }
+    } else {
+      dataForm.submit();
+    }
+  }
+
+  async federatedLoginComplete(params: URLSearchParams): Promise<LoginResponse> {
+    return this.get<LoginResponse>(`/auth/federated/complete?${params.toString()}`).then((r) => this.storeToken(r));
   }
 
   async register(email: string, password: string, scopes: string[]): Promise<LoginResponse> {

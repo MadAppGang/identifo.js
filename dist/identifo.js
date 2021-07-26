@@ -156,6 +156,41 @@ class Api {
       return this.post("/auth/login", data).then((r) => this.storeToken(r));
     });
   }
+  federatedLogin(_0, _1, _2, _3) {
+    return __async$2(this, arguments, function* (provider, scopes, redirectUrl, callbackUrl, opts = { width: 600, height: 800, popUp: false }) {
+      var dataForm = document.createElement("form");
+      dataForm.style.display = "none";
+      if (opts.popUp) {
+        dataForm.target = "TargetWindow";
+      }
+      dataForm.method = "POST";
+      const params = new URLSearchParams();
+      params.set("appId", this.config.appId);
+      params.set("provider", provider);
+      params.set("scopes", scopes.join(","));
+      params.set("redirectUrl", redirectUrl);
+      if (callbackUrl) {
+        params.set("callbackUrl", callbackUrl);
+      }
+      dataForm.action = `${this.baseUrl}/auth/federated?${params.toString()}`;
+      document.body.appendChild(dataForm);
+      if (opts.popUp) {
+        const left = window.screenX + window.outerWidth / 2 - (opts.width || 600) / 2;
+        const top = window.screenY + window.outerHeight / 2 - (opts.height || 800) / 2;
+        var postWindow = window.open("", "TargetWindow", `status=0,title=0,height=${opts.height},width=${opts.width},top=${top},left=${left},scrollbars=1`);
+        if (postWindow) {
+          dataForm.submit();
+        }
+      } else {
+        dataForm.submit();
+      }
+    });
+  }
+  federatedLoginComplete(params) {
+    return __async$2(this, null, function* () {
+      return this.get(`/auth/federated/complete?${params.toString()}`).then((r) => this.storeToken(r));
+    });
+  }
   register(email, password, scopes) {
     return __async$2(this, null, function* () {
       const data = {

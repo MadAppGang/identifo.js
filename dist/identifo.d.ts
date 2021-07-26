@@ -120,6 +120,8 @@ interface LoginResponse {
         };
         phone?: string;
     };
+    scopes?: string[];
+    callbackUrl?: string;
 }
 interface EnableTFAResponse {
     provisioning_uri?: string;
@@ -135,6 +137,7 @@ interface AppSettingsResponse {
     offline: boolean;
     registrationForbidden: boolean;
     tfaType: TFAType;
+    federatedProviders: string[];
 }
 interface User {
     id: string;
@@ -158,6 +161,7 @@ interface UpdateUser {
 interface SuccessResponse {
     result: 'ok';
 }
+declare type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
 
 declare class Api {
     private config;
@@ -180,6 +184,12 @@ declare class Api {
     renewToken(): Promise<LoginResponse>;
     updateUser(user: UpdateUser): Promise<User>;
     login(email: string, password: string, deviceToken: string, scopes: string[]): Promise<LoginResponse>;
+    federatedLogin(provider: FederatedLoginProvider, scopes: string[], redirectUrl: string, callbackUrl?: string, opts?: {
+        width?: number;
+        height?: number;
+        popUp?: boolean;
+    }): Promise<void>;
+    federatedLoginComplete(params: URLSearchParams): Promise<LoginResponse>;
     register(email: string, password: string, scopes: string[]): Promise<LoginResponse>;
     requestResetPassword(email: string): Promise<SuccessResponse>;
     resetPassword(password: string): Promise<SuccessResponse>;
@@ -237,4 +247,4 @@ declare class SessionStorage extends StorageManager {
     constructor(accessKey?: string, refreshKey?: string);
 }
 
-export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CookieStorage as CookieStorageManager, EnableTFAResponse, IdentifoAuth, LocalStorage as LocalStorageManager, LoginResponse, SessionStorage as SessionStorageManager, SuccessResponse, TFAType, UpdateUser, User };
+export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, LocalStorage as LocalStorageManager, LoginResponse, SessionStorage as SessionStorageManager, SuccessResponse, TFAType, UpdateUser, User };

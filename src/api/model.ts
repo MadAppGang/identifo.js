@@ -46,6 +46,8 @@ export interface LoginResponse {
     tfa_info: { hotp_expired_at: string };
     phone?: string;
   };
+  scopes?: string[];
+  callbackUrl?: string;
 }
 export interface EnableTFAResponse {
   provisioning_uri?: string;
@@ -61,6 +63,7 @@ export interface AppSettingsResponse {
   offline: boolean;
   registrationForbidden: boolean;
   tfaType: TFAType;
+  federatedProviders: string[];
 }
 
 export interface User {
@@ -85,3 +88,5 @@ export interface UpdateUser {
 export interface SuccessResponse {
   result: 'ok';
 }
+
+export type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
